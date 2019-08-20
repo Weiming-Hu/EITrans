@@ -1,4 +1,4 @@
-# EITrans: Empirical Inverse Transform Function for Ensemble Forecast Member Selection
+# EITrans: An empirical inverse tranform function for ensemble forecast member selection
 
 <!-- vim-markdown-toc GitLab -->
 
