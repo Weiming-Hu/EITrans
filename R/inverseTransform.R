@@ -1,0 +1,97 @@
+# "`-''-/").___..--''"`-._
+#  (`6_ 6  )   `-.  (     ).`-.__.`)   WE ARE ...
+#  (_Y_.)'  ._   )  `._ `. ``-..-'    PENN STATE!
+#    _ ..`--'_..-_/  /--'_.' ,'
+#  (il),-''  (li),'  ((!.-'
+# 
+# Author: Weiming Hu <weiming@psu.edu>
+#         Geoinformatics and Earth Observation Laboratory (http://geolab.psu.edu)
+#         Department of Geography and Institute for CyberScience
+#         The Pennsylvania State University
+#
+
+#' EITrans::inverseTransform
+#' 
+#' EITrans::inverseTransform resample the analog ensemble members
+#' based on the distribution match information from the heuristic rank
+#' histogram. This function keeps a subset of members from the original
+#' forecast ensembles and the goal is to improve the reliability of
+#' the ensemble subset.
+#' 
+#' @author Weiming Hu \email{weiming@@psu.edu}
+#' 
+#' @param heuristic.rank The frequency or count for each ranked bin.
+#' An example of this parameter is the list member *rank* generated
+#' using the function \code{\link{verifyRankHist}}.
+#' @param analogs A 4-dimensional array for analog values. An exmple
+#' of this parameter is the list member *analogs* with only the *value*
+#' column generated using the function \code{\link{generateAnalogs}}.
+#' @param members.to.keep The number of ensemble members to keep.
+#' @param digits The number of decimals when computing the cumulous summation.
+#' @param randomize.selection Since rank bins are determined by member values,
+#' a decision needs to be made whether to choose the left edge or right edge value
+#' as the cut value when a specific bin is chosen. Set this to True to 
+#' enable randomized selection of left or right edges. Set this to False to
+#' always select the left edge. If this function is called by other functions, 
+#' you can set the parameter by `options(randomize.selection = F)`.
+#' 
+#' @md
+#' @export
+inverseTransform <- function(
+  heuristic.rank, analogs, members.to.keep, digits = 6,
+  randomize.selection = getOption('randomize.selection', T)) {
+  
+  # Sanity checks
+  stopifnot(length(dim(analogs)) == 4)
+  if (any(heuristic.rank == 0)) {
+    stop('Some bins end up with 0 counts. This can be caused by too large ensemble.')
+  }
+  
+  if (length(heuristic.rank) != dim(analogs)[4] + 1) {
+    heuristic.rank <- approx(
+      x = 1:length(heuristic.rank), y = heuristic.rank,
+      xout = seq(from = 1, to = length(heuristic.rank),
+                 length.out = dim(analogs)[4] + 1))$y
+    
+    heuristic.rank <- heuristic.rank/sum(heuristic.rank)
+    
+  }
+  
+  if (members.to.keep >= dim(analogs)[4]) {
+    stop("Too many members to keep. Check your members.to.keep and analogs.")
+  }
+  
+  analogs.order <- apply(analogs, c(1, 2, 3), sort, na.last = T)
+  analogs.order <- aperm(analogs.order, c(2, 3, 4, 1))
+  
+  # Assign the original index as the column name
+  names(heuristic.rank) <- 1:length(heuristic.rank)
+  
+  # Compute the cumulous rank values
+  heuristic.rank.cumsum <- round(cumsum(heuristic.rank), digits = digits)
+  
+  # Equally sample
+  sample <- seq(0, 1, length.out = members.to.keep + 2)
+  
+  # Which bin does each sample correspond to
+  selected <- sapply(sample, function(x) {
+    return(which(x <= heuristic.rank.cumsum)[1])
+  })
+  
+  to.be.removed <- c(which(selected == 1), 
+                     which(selected == dim(analogs)[4]+1))
+  selected <- selected[-to.be.removed]
+  
+  # Randomize the selection of break points of the bar left and right
+  if (randomize.selection) {
+    selected <- selected + round(runif(length(selected)), digits = 0)
+  }
+  
+  if (any(duplicated(selected))) {
+    stop("Same ranks end up been selected multiple times. The scale size might be too small.")
+  }
+  
+  stopifnot(length(selected) == members.to.keep)
+  
+  return(analogs.order[, , , selected, drop = F])
+}
