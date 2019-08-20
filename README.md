@@ -1,14 +1,14 @@
 # EITrans: An empirical inverse tranform function for ensemble forecast member selection
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+
 <!-- vim-markdown-toc GitLab -->
 
 * [Overview](#overview)
 * [Installation](#installation)
 
 <!-- vim-markdown-toc -->
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 
 ## Overview
 
