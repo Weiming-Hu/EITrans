@@ -28,7 +28,7 @@ install.packages("https://github.com/Weiming-Hu/AnalogsEnsemble/raw/master/RAnal
 Run the following line in `R` to install the package:
 
 ```
-
+devtools::install_github('Weiming-Hu/EITrans')
 ```
 
 ```
