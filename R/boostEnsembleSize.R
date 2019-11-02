@@ -24,9 +24,11 @@
 #'
 #' @md
 #' @export
-boostEnsembleSize <- function(AnEn, config, AnEn.LOO.test = NA,
+boostEnsembleSize <- function(
+  AnEn, config, AnEn.LOO.test = NA,
                               scale.size = 10, show.progress = T,
-                              silent = F, avoid.duplicates = T) {
+                              silent = F, avoid.duplicates = T,
+  analog.member = 'analog', similarity.member = 'similarity') {
 
   # Sanity checks
   stopifnot(class(AnEn) == 'AnEn')
@@ -47,44 +49,44 @@ boostEnsembleSize <- function(AnEn, config, AnEn.LOO.test = NA,
     AnEn.LOO.test <- generateAnalogs(config)
 
   } else {
-    stopifnot(dim(AnEn$analogs)[1] == dim(AnEn.LOO.test$analogs)[1])
+    stopifnot(dim(AnEn[[analog.member]])[1] == dim(AnEn.LOO.test$analogs)[1])
     stopifnot(length(config$search_times_compare) == dim(AnEn.LOO.test$analogs)[2])
-    stopifnot(dim(AnEn$analogs)[3] == dim(AnEn.LOO.test$analogs)[3])
+    stopifnot(dim(AnEn[[analog.member]])[3] == dim(AnEn.LOO.test$analogs)[3])
   }
 
   if (dim(AnEn.LOO.test$analogs)[4] < (scale.size - 1)) {
     stop("The precomputed Analogs do not have enough ensemble members to select.")
   }
 
-  new.dims <- dim(AnEn$analogs)
+  new.dims <- dim(AnEn[[analog.member]])
   new.dims[4] <- new.dims[4] * scale.size
   analogs.boost <- array(NA, dim = new.dims)
 
   # Keep the ensemble members from the original analogs
-  analogs.boost[, , , 1:dim(AnEn$analogs)[4], ] <- AnEn$analogs
+  analogs.boost[, , , 1:dim(AnEn[[analog.member]])[4], ] <- AnEn[[analog.member]]
 
   # Where should I insert the extra ensemble members
-  insert.start <- dim(AnEn$analogs)[4] + 1
-  insert.end <- dim(AnEn$analogs)[4] * scale.size
+  insert.start <- dim(AnEn[[analog.member]])[4] + 1
+  insert.end <- dim(AnEn[[analog.member]])[4] * scale.size
   insert.offset <- insert.end - insert.start
 
-  if (!silent) cat('Boosting ensemble size from', dim(AnEn$analogs)[4],
+  if (!silent) cat('Boosting ensemble size from', dim(AnEn[[analog.member]])[4],
                    'to', new.dims[4], '...\n')
   rm(new.dims)
 
   if (show.progress) {
-    pb <- txtProgressBar(max = prod(dim(AnEn$analogs)[1:3]), style = 3)
+    pb <- txtProgressBar(max = prod(dim(AnEn[[analog.member]])[1:3]), style = 3)
     counter <- 0
   }
 
   na.exists <- F
 
-  for (i.grid in 1:dim(AnEn$analogs)[1]) {
-    for (i.test in 1:dim(AnEn$analogs)[2]) {
-      for (i.flt in 1:dim(AnEn$analogs)[3]) {
+  for (i.grid in 1:dim(AnEn[[analog.member]])[1]) {
+    for (i.test in 1:dim(AnEn[[analog.member]])[2]) {
+      for (i.flt in 1:dim(AnEn[[analog.member]])[3]) {
 
         # Get the past day index in forecast times for this partitular AnEn
-        past.fcst.day <- AnEn$similarity[i.grid, i.test, i.flt, , 3]
+        past.fcst.day <- AnEn[[similarity.member]][i.grid, i.test, i.flt, , 3]
 
         if (any(is.na(past.fcst.day))) {
           na.exists <- T

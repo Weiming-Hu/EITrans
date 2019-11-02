@@ -5,7 +5,8 @@
 \title{EITrans::boostEnsembleSize}
 \usage{
 boostEnsembleSize(AnEn, config, AnEn.LOO.test = NA, scale.size = 10,
-  show.progress = T, silent = F, avoid.duplicates = T)
+  show.progress = T, silent = F, avoid.duplicates = T,
+  analog.member = "analog", similarity.member = "similarity")
 }
 \description{
 EITrans::boostEnsembleSize boosts the number of ensemble memebers using
