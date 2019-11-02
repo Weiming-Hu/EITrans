@@ -26,9 +26,9 @@
 #' @export
 boostEnsembleSize <- function(
   AnEn, config, AnEn.LOO.test = NA,
-                              scale.size = 10, show.progress = T,
-                              silent = F, avoid.duplicates = T,
-  analog.member = 'analog', similarity.member = 'similarity') {
+  scale.size = 10, show.progress = T,
+  silent = F, avoid.duplicates = T,
+  analog.member = 'analogs', similarity.member = 'similarity') {
 
   # Sanity checks
   stopifnot(class(AnEn) == 'AnEn')
