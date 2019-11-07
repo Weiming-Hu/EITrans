@@ -159,6 +159,10 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
   if (!silent) cat('Applying the inverse transform function ...\n')
   analogs.hf <- inverseTransform(rh.LOO.test$rank, anen, final.ensemble.size)
   
+  if (is.null(analogs.hf)) {
+    return(NULL)
+  }
+  
   if (do.not.append) {
     return(analogs.hf)
   } else {
