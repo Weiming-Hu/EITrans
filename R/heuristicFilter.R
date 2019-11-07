@@ -75,6 +75,7 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
                              member.name = 'analogs') {
   
   # Sanity checks
+  stopifnot(!config$quick)
   stopifnot(config$preserve_similarity)
   stopifnot(!config$advanced)
   stopifnot(config$mode == 'independentSearch')
