@@ -44,7 +44,8 @@ inverseTransform <- function(
   # Sanity checks
   stopifnot(length(dim(analogs)) == 4)
   if (any(heuristic.rank == 0)) {
-    stop('Some bins end up with 0 counts. This can be caused by too large ensemble.')
+    warning('Some bins end up with 0 counts. This can be caused by too large ensemble. The process is terminated.')
+    return(NULL)
   }
   
   if (length(heuristic.rank) != dim(analogs)[4] + 1) {
