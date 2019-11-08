@@ -88,7 +88,7 @@ inverseTransform <- function(
   }
   
   if (any(duplicated(selected))) {
-    stop("Same ranks end up been selected multiple times. The scale size might be too small.")
+    stop("Same ranks end up been selected multiple times.")
   }
   
   stopifnot(length(selected) == members.to.keep)
