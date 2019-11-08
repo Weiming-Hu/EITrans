@@ -62,14 +62,13 @@ inverseTransform <- function(
 
   # Equally sample
   sample <- seq(0, 1, length.out = members.to.keep + 2)
+  sample <- sample[-c(1, members.to.keep + 2)]
 
   # Which bin does each sample correspond to
   selected <- sapply(sample, function(x) {
     # return(which(x <= heuristic.rank.cumsum)[1])
     return(which.min(abs(x - heuristic.rank.cumsum)))
   })
-
-  selected <- selected[-c(1, members.to.keep + 1)]
 
   if (any(duplicated(selected))) {
     warning("Same ranks end up been selected multiple times. Results might be corrupted.")
