@@ -77,6 +77,7 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
                              member.name = 'analogs') {
 
   # Sanity checks
+  stopifnot(!config$quick)
   stopifnot(config$preserve_similarity)
   stopifnot(!config$advanced)
   stopifnot(config$mode == 'independentSearch')
@@ -161,6 +162,10 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
   if (!silent) cat('Applying the inverse transform function ...\n')
   analogs.hf <- inverseTransform(rh.LOO.test$rank, anen, final.ensemble.size)
 
+  if (is.null(analogs.hf)) {
+    return(NULL)
+  }
+
   if (do.not.append) {
     return(analogs.hf)
   } else {
@@ -192,7 +197,12 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
 
       AnEn$LOO.forecast.times <- config$test_times_compare
     }
+<<<<<<< HEAD
 
+=======
+
+    cat('Done (heuristicFilter)!\n')
+>>>>>>> ee7580e96d7d858ffbc0c53b8dc5a00c1f617757
     return(AnEn)
   }
 }
