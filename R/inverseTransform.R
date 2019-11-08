@@ -79,8 +79,7 @@ inverseTransform <- function(
     return(which(x <= heuristic.rank.cumsum)[1])
   })
   
-  to.be.removed <- c(which(selected == 1), 
-                     which(selected == dim(analogs)[4]+1))
+  to.be.removed <- c(1, members.to.keep + 2)
   selected <- selected[-to.be.removed]
   
   # Randomize the selection of break points of the bar left and right
