@@ -89,7 +89,12 @@ with large amount of members (usually at the level of a hunderd)." />
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/Weiming-Hu/EITrans">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -104,7 +109,7 @@ with large amount of members (usually at the level of a hunderd)." />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>EITrans::heuristicFilter</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/heuristicFilter.R'><code>R/heuristicFilter.R</code></a></small>
     <div class="hidden name"><code>heuristicFilter.Rd</code></div>
     </div>
 
@@ -115,11 +120,11 @@ inverse transformation function. The filter works better with ensembles
 with large amount of members (usually at the level of a hunderd).</p>
     </div>
 
-    <pre class="usage"><span class='fu'>heuristicFilter</span>(<span class='no'>AnEn</span>, <span class='no'>config</span>, <span class='no'>final.ensemble.size</span>, <span class='kw'>LOO.test.size</span> <span class='kw'>=</span> <span class='fl'>10</span>,
-  <span class='kw'>keep.table</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>keep.LOO.rank</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>keep.LOO</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>do.not.append</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>show.progress</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>i.station</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
-  <span class='kw'>i.test.day</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>AnEn.LOO.test</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
-  <span class='kw'>heuristic.ensemble.size</span> <span class='kw'>=</span> <span class='no'>config</span>$<span class='no'>num_members</span>,
+    <pre class="usage"><span class='fu'>heuristicFilter</span>(<span class='no'>AnEn</span>, <span class='no'>config</span>, <span class='no'>final.ensemble.size</span>,
+  <span class='kw'>historical.similar.count</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>LOO.test.size</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>keep.table</span> <span class='kw'>=</span> <span class='no'>T</span>,
+  <span class='kw'>keep.LOO.rank</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>keep.LOO</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>do.not.append</span> <span class='kw'>=</span> <span class='no'>F</span>,
+  <span class='kw'>show.progress</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>i.station</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>i.test.day</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>AnEn.LOO.test</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>heuristic.ensemble.size</span> <span class='kw'>=</span> <span class='no'>config</span>$<span class='no'>num_members</span>,
   <span class='kw'>member.name</span> <span class='kw'>=</span> <span class='st'>"analogs"</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -139,10 +144,14 @@ with large amount of members (usually at the level of a hunderd).</p>
 final ensemble forecasts.</p></td>
     </tr>
     <tr>
+      <th>historical.similar.count</th>
+      <td><p>The number of past similar forecasts
+to include when considering calculating the historical rank histogram.</p></td>
+    </tr>
+    <tr>
       <th>LOO.test.size</th>
-      <td><p>How many forecasts from the past to
-generate leave-one-out AnEn test results for. These historical forecasts
-are sorted based on the similarity to the current forecasts.</p></td>
+      <td><p>The number of historical forecasts to
+carry out leave-one-out test.</p></td>
     </tr>
     <tr>
       <th>keep.table</th>

@@ -8,6 +8,8 @@ Description: This package proposes an algorithm for
     ensemble forecast member selection. The algorithm
     selects ensemble members that have relative higher quality.
 License: MIT + file LICENSE
+BugReports: https://github.com/Weiming-Hu/EITrans/issues
+URL: https://weiming-hu.github.io/EITrans/, https://github.com/Weiming-Hu/EITrans
 Depends:
     RAnEn,
 Encoding: UTF-8

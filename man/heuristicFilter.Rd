@@ -4,11 +4,11 @@
 \alias{heuristicFilter}
 \title{EITrans::heuristicFilter}
 \usage{
-heuristicFilter(AnEn, config, final.ensemble.size, LOO.test.size = 10,
-  keep.table = T, keep.LOO.rank = T, keep.LOO = T,
-  do.not.append = F, show.progress = T, silent = F, i.station = NA,
-  i.test.day = NA, AnEn.LOO.test = NA,
-  heuristic.ensemble.size = config$num_members,
+heuristicFilter(AnEn, config, final.ensemble.size,
+  historical.similar.count = 1, LOO.test.size = 10, keep.table = T,
+  keep.LOO.rank = T, keep.LOO = T, do.not.append = F,
+  show.progress = T, silent = F, i.station = NA, i.test.day = NA,
+  AnEn.LOO.test = NA, heuristic.ensemble.size = config$num_members,
   member.name = "analogs")
 }
 \arguments{
@@ -19,9 +19,11 @@ heuristicFilter(AnEn, config, final.ensemble.size, LOO.test.size = 10,
 \item{final.ensemble.size}{How many ensemble members to keep in the
 final ensemble forecasts.}
 
-\item{LOO.test.size}{How many forecasts from the past to
-generate leave-one-out AnEn test results for. These historical forecasts
-are sorted based on the similarity to the current forecasts.}
+\item{historical.similar.count}{The number of past similar forecasts
+to include when considering calculating the historical rank histogram.}
+
+\item{LOO.test.size}{The number of historical forecasts to
+carry out leave-one-out test.}
 
 \item{keep.table}{Whether to keep the summary table of similariy.}
 
