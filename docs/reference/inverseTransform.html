@@ -73,7 +73,7 @@ the ensemble subset." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EITrans</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.2</span>
       </span>
     </div>
 
@@ -122,8 +122,7 @@ forecast ensembles and the goal is to improve the reliability of
 the ensemble subset.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>inverseTransform</span>(<span class='no'>heuristic.rank</span>, <span class='no'>analogs</span>, <span class='no'>members.to.keep</span>, <span class='kw'>digits</span> <span class='kw'>=</span> <span class='fl'>6</span>,
-  <span class='kw'>randomize.selection</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/options.html'>getOption</a></span>(<span class='st'>"randomize.selection"</span>, <span class='no'>T</span>))</pre>
+    <pre class="usage"><span class='fu'>inverseTransform</span>(<span class='no'>heuristic.rank</span>, <span class='no'>analogs</span>, <span class='no'>members.to.keep</span>, <span class='kw'>digits</span> <span class='kw'>=</span> <span class='fl'>6</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -147,15 +146,6 @@ column generated using the function <code>generateAnalogs</code>.</p></td>
     <tr>
       <th>digits</th>
       <td><p>The number of decimals when computing the cumulous summation.</p></td>
-    </tr>
-    <tr>
-      <th>randomize.selection</th>
-      <td><p>Since rank bins are determined by member values,
-a decision needs to be made whether to choose the left edge or right edge value
-as the cut value when a specific bin is chosen. Set this to True to
-enable randomized selection of left or right edges. Set this to False to
-always select the left edge. If this function is called by other functions,
-you can set the parameter by <code><a href='https://rdrr.io/r/base/options.html'>options(randomize.selection = F)</a></code>.</p></td>
     </tr>
     </table>
 

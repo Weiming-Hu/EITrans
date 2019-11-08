@@ -197,12 +197,8 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
 
       AnEn$LOO.forecast.times <- config$test_times_compare
     }
-<<<<<<< HEAD
-
-=======
 
     cat('Done (heuristicFilter)!\n')
->>>>>>> ee7580e96d7d858ffbc0c53b8dc5a00c1f617757
     return(AnEn)
   }
 }

@@ -4,8 +4,7 @@
 \alias{inverseTransform}
 \title{EITrans::inverseTransform}
 \usage{
-inverseTransform(heuristic.rank, analogs, members.to.keep, digits = 6,
-  randomize.selection = getOption("randomize.selection", T))
+inverseTransform(heuristic.rank, analogs, members.to.keep, digits = 6)
 }
 \arguments{
 \item{heuristic.rank}{The frequency or count for each ranked bin.
@@ -19,13 +18,6 @@ column generated using the function \code{\link{generateAnalogs}}.}
 \item{members.to.keep}{The number of ensemble members to keep.}
 
 \item{digits}{The number of decimals when computing the cumulous summation.}
-
-\item{randomize.selection}{Since rank bins are determined by member values,
-a decision needs to be made whether to choose the left edge or right edge value
-as the cut value when a specific bin is chosen. Set this to True to
-enable randomized selection of left or right edges. Set this to False to
-always select the left edge. If this function is called by other functions,
-you can set the parameter by \code{options(randomize.selection = F)}.}
 }
 \description{
 EITrans::inverseTransform resample the analog ensemble members
