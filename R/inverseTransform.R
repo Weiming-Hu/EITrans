@@ -63,7 +63,7 @@ inverseTransform <- function(
   # Which bin does each sample correspond to
   selected <- sapply(sample, function(x) {
     vec <- abs(x - heuristic.rank.cumsum)
-    i <- which(vec == min(v))
+    i <- which(vec == min(vec))
   
     if (length(i) == 1) {return(i)}
     else {return(sample(i, 1))}
