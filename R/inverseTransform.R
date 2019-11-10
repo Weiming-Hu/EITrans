@@ -54,7 +54,7 @@ inverseTransform <- function(
   analogs.order <- aperm(analogs.order, c(2, 3, 4, 1))
 
   # Compute the cumulous rank values
-  heuristic.rank.cumsum <- round(cumsum(c(0, heuristic.rank)), digits = digits)
+  heuristic.rank.cumsum <- round(cumsum(heuristic.rank), digits = digits)
 
   # Equally sample
   sample <- seq(0, 1, length.out = members.to.keep + 2)
@@ -62,8 +62,11 @@ inverseTransform <- function(
 
   # Which bin does each sample correspond to
   selected <- sapply(sample, function(x) {
-    # return(which(x <= heuristic.rank.cumsum)[1])
-    return(which.min(abs(x - heuristic.rank.cumsum)))
+    vec <- abs(x - heuristic.rank.cumsum)
+    i <- which(vec == min(v))
+  
+    if (length(i) == 1) {return(i)}
+    else {return(sample(i, 1))}
   })
 
   if (any(duplicated(selected))) {
