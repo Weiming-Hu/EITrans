@@ -57,8 +57,8 @@ inverseTransform <- function(
   heuristic.rank.cumsum <- round(cumsum(heuristic.rank), digits = digits)
 
   # Equally sample
-  sample <- seq(0, 1, length.out = members.to.keep)
-  #sample <- sample[-c(1, members.to.keep + 2)]
+  sample <- seq(0, 1, length.out = members.to.keep + 2)
+  sample <- sample[-c(1, members.to.keep + 2)]
 
   # Which bin does each sample correspond to
   selected <- sapply(sample, function(x) {
