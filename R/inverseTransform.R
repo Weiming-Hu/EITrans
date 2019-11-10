@@ -54,7 +54,7 @@ inverseTransform <- function(
   analogs.order <- aperm(analogs.order, c(2, 3, 4, 1))
 
   # Compute the cumulous rank values
-  heuristic.rank.cumsum <- round(cumsum(c(0, heuristic.rank)), digits = digits)
+  heuristic.rank.cumsum <- round(cumsum(heuristic.rank), digits = digits)
 
   # Equally sample
   sample <- seq(0, 1, length.out = members.to.keep + 2)
