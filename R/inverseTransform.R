@@ -67,7 +67,7 @@ inverseTransform <- function(
   })
 
   if (any(duplicated(selected))) {
-    warning("Same ranks end up been selected multiple times. Results might be corrupted.")
+    stop("Same ranks end up been selected multiple times. Results might be corrupted.")
   }
 
   stopifnot(length(selected) == members.to.keep)
