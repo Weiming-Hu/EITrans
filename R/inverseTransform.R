@@ -69,9 +69,9 @@ inverseTransform <- function(
     else {return(sample(i, 1))}
   })
 
-  if (any(duplicated(selected))) {
-    stop("Same ranks end up been selected multiple times. Results might be corrupted.")
-  }
+  #if (any(duplicated(selected))) {
+  #  stop("Same ranks end up been selected multiple times. Results might be corrupted.")
+  #}
 
   stopifnot(length(selected) == members.to.keep)
 
