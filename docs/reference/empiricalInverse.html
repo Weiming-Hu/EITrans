@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>EITrans::boostEnsembleSize — boostEnsembleSize • EITrans</title>
+<title>EITrans::empiricalInverse — empiricalInverse • EITrans</title>
 
 
 <!-- jquery -->
@@ -35,9 +35,11 @@
 
 
 
-<meta property="og:title" content="EITrans::boostEnsembleSize — boostEnsembleSize" />
-<meta property="og:description" content="EITrans::boostEnsembleSize boosts the number of ensemble memebers using
-an empirical approach based on similarity." />
+<meta property="og:title" content="EITrans::empiricalInverse — empiricalInverse" />
+<meta property="og:description" content="EITrans::empiricalInverse is designed to improve the quality of
+Analog Ensemble forecasts by using empirical inverse tranformation
+function (EITrans). EITrans works better with ensembles
+with large amount of members (usually at the level of a hunderd)." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -106,19 +108,23 @@ an empirical approach based on similarity." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>EITrans::boostEnsembleSize</h1>
-    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/boostEnsembleSize.R'><code>R/boostEnsembleSize.R</code></a></small>
-    <div class="hidden name"><code>boostEnsembleSize.Rd</code></div>
+    <h1>EITrans::empiricalInverse</h1>
+    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/empiricalInverse.R'><code>R/empiricalInverse.R</code></a></small>
+    <div class="hidden name"><code>empiricalInverse.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>EITrans::boostEnsembleSize boosts the number of ensemble memebers using
-an empirical approach based on similarity.</p>
+    <p>EITrans::empiricalInverse is designed to improve the quality of
+Analog Ensemble forecasts by using empirical inverse tranformation
+function (EITrans). EITrans works better with ensembles
+with large amount of members (usually at the level of a hunderd).</p>
     </div>
 
-    <pre class="usage"><span class='fu'>boostEnsembleSize</span>(<span class='no'>AnEn</span>, <span class='no'>config</span>, <span class='kw'>AnEn.LOO.test</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>scale.size</span> <span class='kw'>=</span> <span class='fl'>10</span>,
-  <span class='kw'>show.progress</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>avoid.duplicates</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>analog.member</span> <span class='kw'>=</span> <span class='st'>"analogs"</span>, <span class='kw'>similarity.member</span> <span class='kw'>=</span> <span class='st'>"similarity"</span>)</pre>
+    <pre class="usage"><span class='fu'>empiricalInverse</span>(<span class='no'>AnEn</span>, <span class='no'>config</span>, <span class='no'>final.ensemble.size</span>, <span class='no'>LOO.test.size</span>,
+  <span class='no'>LOO.ensemble.size</span>, <span class='kw'>historical.similar.count</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>keep.table</span> <span class='kw'>=</span> <span class='no'>T</span>,
+  <span class='kw'>keep.LOO.rank</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>keep.LOO</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>do.not.append</span> <span class='kw'>=</span> <span class='no'>F</span>,
+  <span class='kw'>show.progress</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>i.station</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>i.test.day</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>AnEn.LOO.test</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>member.name</span> <span class='kw'>=</span> <span class='st'>"analogs"</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -132,53 +138,94 @@ an empirical approach based on similarity.</p>
       <td><p>The configuration used by <code>generateAnalogs</code>.</p></td>
     </tr>
     <tr>
-      <th>AnEn.LOO.test</th>
-      <td><p>The precomputed AnEn results for leave-one-out tests.
-If not provided, LOO tests will be carried out at the spot. See
-<code><a href='empiricalInverse.html'>empiricalInverse</a></code> for instructions on precopmuting LOO tests.</p></td>
+      <th>final.ensemble.size</th>
+      <td><p>How many ensemble members to keep in the
+final ensemble forecasts.</p></td>
     </tr>
     <tr>
-      <th>scale.size</th>
-      <td><p>The times for ensemble size multiplication.</p></td>
+      <th>LOO.test.size</th>
+      <td><p>The number of historical forecasts to
+carry out AnEn leave-one-out test.</p></td>
+    </tr>
+    <tr>
+      <th>LOO.ensemble.size</th>
+      <td><p>The number of ensemble members to take from
+the LOO test results to construct the reference rank histogram.</p></td>
+    </tr>
+    <tr>
+      <th>historical.similar.count</th>
+      <td><p>The number of past similar forecasts
+to include when considering calculating the reference rank histogram.</p></td>
+    </tr>
+    <tr>
+      <th>keep.table</th>
+      <td><p>Whether to keep the summary table of similariy.</p></td>
+    </tr>
+    <tr>
+      <th>keep.LOO.rank</th>
+      <td><p>Whether to keep the verification rank histogram
+for the leave-one-out tests.</p></td>
+    </tr>
+    <tr>
+      <th>keep.LOO</th>
+      <td><p>Whether to keep the analogs and similarity results
+from the leave-one-out test if they are computed.</p></td>
+    </tr>
+    <tr>
+      <th>do.not.append</th>
+      <td><p>If set to True, results will not be appended to
+AnEn, and the filtered analog ensembles will be returned. At the
+same time, all <code>keep*</code> parameters become invalid.</p></td>
     </tr>
     <tr>
       <th>show.progress</th>
-      <td><p>Whether to show a progress bar.</p></td>
+      <td><p>Whether to show the progress bar.</p></td>
     </tr>
     <tr>
       <th>silent</th>
-      <td><p>Whether to suppress output messages.</p></td>
+      <td><p>Whether to be silent.</p></td>
     </tr>
     <tr>
-      <th>avoid.duplicates</th>
-      <td><p>Whether to remove duplicates. It is possible that
-the similar forecasts to A1 are also deemed similar to A2. Set this to
-TRUE to avoid double counting.</p></td>
+      <th>i.station</th>
+      <td><p>A vector of station indices of which analogs will be filtered.</p></td>
     </tr>
     <tr>
-      <th>analog.member</th>
-      <td><p>The member name to be processed as <code>analogs</code>.</p></td>
+      <th>i.test.day</th>
+      <td><p>A vector of test day indices of which analogs will be filtered.</p></td>
     </tr>
     <tr>
-      <th>similairty.member</th>
-      <td><p>The member name to be processed as <code>similarity</code>.</p></td>
+      <th>AnEn.LOO.test</th>
+      <td><p>The precomputed AnEn results for leave-one-out tests.
+If not provided, LOO tests will be carried out at the spot. See details for
+instructions on precopmuting LOO tests.</p></td>
+    </tr>
+    <tr>
+      <th>member.name</th>
+      <td><p>The name of the member in AnEn to process. By default, it
+is <code>analogs</code>. But this parameter can be helpful if, for example, you want to
+process another member called <code>analogs.alternative</code>.</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>Analogs with the boosted ensemble size.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>An important assumption is that AnEn.LOO.test is generated using the same config
-as AnEn except for the config$test_times_compare and config$num_members being changed.</p>
+    <p>To precompute AnEn.LOO.test, simply copy the values from <code>search_times_compare</code>
+to <code>test_times_compare</code> in the <code>config</code> which is passed to this function, and
+use the <code>generateAnalogs</code> to generate the <code>AnEn.LOO.test</code>. To save memory and space,
+you can optionally omit similarity information in the results by setting
+<code>config$keep_similarity = F</code>. <strong>The only required member is <code>analogs</code></strong>.</p>
+<p>You might wonder when you need to generate an updated version of <code>AnEn.LOO.test</code>.
+Usually, if you change the settings in <code>config</code> which would affect the search
+data, for example, <code>search_times_compare</code>, and the calculation of <code>AnEn</code>, for
+example, <code>weights</code>, you will need to regenerate the <code>AnEn.LOO.test</code>. Otherwise, you
+do not need to regenerate it. For example, you don't need to regenerate <code>AnEn.LOO.test</code>
+if you only change <code>test_times_compare</code>.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
       <li><a href="#details">Details</a></li>
     </ul>
 

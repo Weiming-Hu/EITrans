@@ -5,12 +5,38 @@
 \title{EITrans::boostEnsembleSize}
 \usage{
 boostEnsembleSize(AnEn, config, AnEn.LOO.test = NA, scale.size = 10,
-  show.progress = T, silent = F, avoid.duplicates = T,
+  show.progress = F, silent = F, avoid.duplicates = T,
   analog.member = "analogs", similarity.member = "similarity")
+}
+\arguments{
+\item{AnEn}{The AnEn results from \code{\link{generateAnalogs}}.}
+
+\item{config}{The configuration used by \code{\link{generateAnalogs}}.}
+
+\item{AnEn.LOO.test}{The precomputed AnEn results for leave-one-out tests.
+If not provided, LOO tests will be carried out at the spot. See
+\code{\link{empiricalInverse}} for instructions on precopmuting LOO tests.}
+
+\item{scale.size}{The times for ensemble size multiplication.}
+
+\item{show.progress}{Whether to show a progress bar.}
+
+\item{silent}{Whether to suppress output messages.}
+
+\item{avoid.duplicates}{Whether to remove duplicates. It is possible that
+the similar forecasts to A1 are also deemed similar to A2. Set this to
+TRUE to avoid double counting.}
+
+\item{analog.member}{The member name to be processed as \code{analogs}.}
+
+\item{similairty.member}{The member name to be processed as \code{similarity}.}
+}
+\value{
+Analogs with the boosted ensemble size.
 }
 \description{
 EITrans::boostEnsembleSize boosts the number of ensemble memebers using
-an empirical approach.
+an empirical approach based on similarity.
 }
 \details{
 An important assumption is that AnEn.LOO.test is generated using the same config

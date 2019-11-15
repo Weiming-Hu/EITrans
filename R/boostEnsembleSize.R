@@ -14,7 +14,7 @@
 #' EITrans::boostEnsembleSize
 #'
 #' EITrans::boostEnsembleSize boosts the number of ensemble memebers using
-#' an empirical approach.
+#' an empirical approach based on similarity.
 #'
 #' @author Weiming Hu \email{weiming@@psu.edu}
 #'
@@ -22,11 +22,27 @@
 #' An important assumption is that AnEn.LOO.test is generated using the same config
 #' as AnEn except for the config$test_times_compare and config$num_members being changed.
 #'
+#' @param AnEn The AnEn results from \code{\link{generateAnalogs}}.
+#' @param config The configuration used by \code{\link{generateAnalogs}}.
+#' @param AnEn.LOO.test The precomputed AnEn results for leave-one-out tests.
+#' If not provided, LOO tests will be carried out at the spot. See
+#' \code{\link{empiricalInverse}} for instructions on precopmuting LOO tests.
+#' @param scale.size The times for ensemble size multiplication.
+#' @param show.progress Whether to show a progress bar.
+#' @param silent Whether to suppress output messages.
+#' @param avoid.duplicates Whether to remove duplicates. It is possible that
+#' the similar forecasts to A1 are also deemed similar to A2. Set this to
+#' TRUE to avoid double counting.
+#' @param analog.member The member name to be processed as `analogs`.
+#' @param similairty.member The member name to be processed as `similarity`.
+#'
+#' @return Analogs with the boosted ensemble size.
+#'
 #' @md
 #' @export
 boostEnsembleSize <- function(
   AnEn, config, AnEn.LOO.test = NA,
-  scale.size = 10, show.progress = T,
+  scale.size = 10, show.progress = F,
   silent = F, avoid.duplicates = T,
   analog.member = 'analogs', similarity.member = 'similarity') {
 

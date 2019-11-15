@@ -10,11 +10,11 @@
 #         The Pennsylvania State University
 #
 
-#' EITrans::heuristicFilter
+#' EITrans::empiricalInverse
 #'
-#' EITrans::heuristicFilter is designed to improve the reliability of
-#' Analog Ensemble forecasts by using the leave-one-out method and the
-#' inverse transformation function. The filter works better with ensembles
+#' EITrans::empiricalInverse is designed to improve the quality of
+#' Analog Ensemble forecasts by using empirical inverse tranformation
+#' function (EITrans). EITrans works better with ensembles
 #' with large amount of members (usually at the level of a hunderd).
 #'
 #' @author Weiming Hu \email{weiming@@psu.edu}
@@ -23,10 +23,12 @@
 #' @param config The configuration used by \code{\link{generateAnalogs}}.
 #' @param final.ensemble.size How many ensemble members to keep in the
 #' final ensemble forecasts.
-#' @param historical.similar.count The number of past similar forecasts
-#' to include when considering calculating the historical rank histogram.
 #' @param LOO.test.size The number of historical forecasts to
-#' carry out leave-one-out test.
+#' carry out AnEn leave-one-out test.
+#' @param historical.similar.count The number of past similar forecasts
+#' to include when considering calculating the reference rank histogram.
+#' @param LOO.ensemble.size The number of ensemble members to take from
+#' the LOO test results to construct the reference rank histogram.
 #' @param keep.table Whether to keep the summary table of similariy.
 #' @param keep.LOO.rank Whether to keep the verification rank histogram
 #' for the leave-one-out tests.
@@ -42,9 +44,6 @@
 #' @param AnEn.LOO.test The precomputed AnEn results for leave-one-out tests.
 #' If not provided, LOO tests will be carried out at the spot. See details for
 #' instructions on precopmuting LOO tests.
-#' @param  heuristic.ensemble.size The number of ensemble members to take from
-#' the LOO test results to construct the heuristic rank histogram. By default,
-#' it is the `num_members` member from input `config`.
 #' @param member.name The name of the member in AnEn to process. By default, it
 #' is `analogs`. But this parameter can be helpful if, for example, you want to
 #' process another member called `analogs.alternative`.
@@ -65,15 +64,14 @@
 #'
 #' @md
 #' @export
-heuristicFilter <- function (AnEn, config, final.ensemble.size,
+empiricalInverse <- function (AnEn, config, final.ensemble.size,
+                             LOO.test.size, LOO.ensemble.size,
                              historical.similar.count = 1,
-                             LOO.test.size = 10,
                              keep.table = T, keep.LOO.rank = T,
                              keep.LOO = T, do.not.append = F,
                              show.progress = T, silent = F,
                              i.station = NA, i.test.day = NA,
                              AnEn.LOO.test = NA,
-                             heuristic.ensemble.size = config$num_members,
                              member.name = 'analogs') {
 
   # Sanity checks
@@ -92,8 +90,8 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
     config$search_observations <- config$search_observations[, i.station, , drop = F]
   }
 
-  # Select the most similar past forecasts to build heuristic ranks
-  if (!silent) cat('Building heuristic ranks based on similar past forecsats ...\n')
+  # Select the most similar past forecasts to build ranks
+  if (!silent) cat('Counting ranks based on similar past forecsats ...\n')
 
   # Counts the number of times each past forecast is selected
   summary <- tabulate(AnEn$similarity[
@@ -118,8 +116,8 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
     if (!silent) cat('Compute LOO tests ...\n')
 
     # Leave-one-out test
-    config$num_members <- heuristic.ensemble.size
-    config$max_num_sims <- heuristic.ensemble.size
+    config$num_members <- LOO.ensemble.size
+    config$max_num_sims <- LOO.ensemble.size
     config$preserve_mapping <- F
     AnEn.LOO.test <- generateAnalogs(config)
 
@@ -130,10 +128,10 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
     stopifnot(dim(AnEn.LOO.test$analogs)[1] == dim(AnEn[[member.name]])[1])
     stopifnot(dim(AnEn.LOO.test$analogs)[2] == length(config$search_times_compare))
     stopifnot(dim(AnEn.LOO.test$analogs)[3] == dim(AnEn[[member.name]])[3])
-    stopifnot(dim(AnEn.LOO.test$analogs)[4] >= heuristic.ensemble.size)
+    stopifnot(dim(AnEn.LOO.test$analogs)[4] >= LOO.ensemble.size)
 
     AnEn.LOO.test$analogs <- AnEn.LOO.test$analogs[
-      i.station, i.LOO.test.days, , 1:heuristic.ensemble.size, , drop = F]
+      i.station, i.LOO.test.days, , 1:LOO.ensemble.size, , drop = F]
   }
 
   # Generate verifications for leave-one-out tests
@@ -154,11 +152,11 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
   anen.LOO <- AnEn.LOO.test$analogs[, , , , 1, drop = F]
   dim(anen.LOO) <- dim(anen.LOO)[-5]
 
-  # Generate heuristic ranks for leave-one-out analogs
-  if (!silent) cat('Generating heuristic rank hitograms ...\n')
+  # Generate reference ranks for leave-one-out analogs
+  if (!silent) cat('Generating reference rank hitograms ...\n')
   rh.LOO.test <- verifyRankHist(anen.LOO, obs, show.progress = show.progress)
 
-  # Heuristic filter
+  # EITrans
   if (!silent) cat('Applying the inverse transform function ...\n')
   analogs.hf <- inverseTransform(rh.LOO.test$rank, anen, final.ensemble.size)
 
@@ -182,7 +180,7 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
       if (!silent) {
         cat('Appending the rank for leave-one-out tests ...\n')
       }
-      AnEn$heuristic.rank <- rh.LOO.test
+      AnEn$reference.rank <- rh.LOO.test
     }
 
     if (keep.LOO) {
@@ -199,7 +197,7 @@ heuristicFilter <- function (AnEn, config, final.ensemble.size,
     }
 
     if (!silent) {
-      cat('Done (heuristicFilter)!\n')
+      cat('Done (empiricalInverse)!\n')
     }
     return(AnEn)
   }
