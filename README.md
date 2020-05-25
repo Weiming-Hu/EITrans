@@ -29,7 +29,7 @@ To install `EITrans`, first install the following dependent packages:
 install.packages("https://github.com/Weiming-Hu/AnalogsEnsemble/raw/master/RAnalogs/releases/RAnEn_latest.tar.gz", repos = NULL)
 devtools::install_github('RAnEnExtra')
 
-install.packages(c('Progress', 'abind'))
+install.packages(c('progress', 'abind'))
 ```
 
 The following packages are optional. They are mainly for high performance computing.
