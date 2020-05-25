@@ -12,20 +12,33 @@
 
 ## Overview
 
-This package proposes an algorithm for ensemble forecast member selection. The algorithm selects ensemble members that have relative higher quality.
+This package proposes an algorithm that use [weather analogs](https://weiming-hu.github.io/AnalogsEnsemble/) for ensemble forecast calibration.
 
 The package is currently under-developing and relevant research is continuing.
+
+Please visit [Analog Ensembles](weiming-hu.github.io/) to learn more about weather analogs.
+
+Please visit [my website](weiming-hu.github.io/) to learn more about my research.
 
 
 ## Installation
 
-`EITrans` depends on [RAnEn](https://weiming-hu.github.io/AnalogsEnsemble/). Please use the following command to install `RAnEn` first:
+To install `EITrans`, first install the following dependent packages:
 
 ```
 install.packages("https://github.com/Weiming-Hu/AnalogsEnsemble/raw/master/RAnalogs/releases/RAnEn_latest.tar.gz", repos = NULL)
+devtools::install_github('RAnEnExtra')
+
+install.packages(c('Progress', 'abind'))
 ```
 
-Run the following line in `R` to install the package:
+The following packages are optional. They are mainly for high performance computing.
+
+```
+install.packages(c('doSNOW', 'Rmpi'))
+```
+
+Then, you can install `EITrans` by running
 
 ```
 devtools::install_github('Weiming-Hu/EITrans')
