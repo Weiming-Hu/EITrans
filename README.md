@@ -29,13 +29,19 @@ To install `EITrans`, first install the following dependent packages:
 install.packages("https://github.com/Weiming-Hu/AnalogsEnsemble/raw/master/RAnalogs/releases/RAnEn_latest.tar.gz", repos = NULL)
 devtools::install_github('Weiming-Hu/RAnEnExtra')
 
-install.packages(c('progress', 'abind', 'doSNOW', 'foreach'))
+# The repos argument is just to skip the repo selection.
+# You can simply omit the argument if you want.
+#
+install.packages(c('progress', 'abind', 'doSNOW', 'foreach'), repos='http://cran.us.r-project.org')
 ```
 
 The following packages are optional. They are mainly for high performance computing.
 
 ```
-install.packages('Rmpi')
+# The repos argument is just to skip the repo selection.
+# You can simply omit the argument if you want.
+#
+install.packages('Rmpi', repos='http://cran.us.r-project.org')
 ```
 
 Then, you can install `EITrans` by running
