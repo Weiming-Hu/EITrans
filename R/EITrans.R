@@ -34,11 +34,12 @@
 #' @param circular_ens Whether the ensemble forecast variable is circular.
 #' @param member_weights Weights for each ensemble members when finding similar
 #' historical ensemble forecasts.
+#' @param grid_search_cores The number of cores to use during grid search.
 #'
 #' @return A list with the calibrated ensemble forecasts and intermediate results.
 #'
-#' @import foreach
-#' @import progress
+#' @import pbmcapply
+#' @import parallel
 #'
 #' @md
 #' @export
@@ -48,7 +49,8 @@ EITrans <- function(ens, ens_times, ens_flts,
                     infinity_estimator,
                     multiplier,
                     circular_ens = F,
-                    member_weights = NULL) {
+                    member_weights = NULL,
+                    grid_search_cores = detectCores()) {
 
   # Sanity checks
   cat('Start EITrans calibration ...\n')
@@ -123,14 +125,7 @@ EITrans <- function(ens, ens_times, ens_flts,
       obs.ver = obs_dev[, , flt_index, drop = F],
       show.progress = F, pre.sort = T)
 
-    # Initialize progress bar
-    pb <- progress_bar$new(
-      format = "[:bar] :elapsed | eta: :eta",
-      total = nrow(grid_search), clear = F)
-
-    opts <- list(progress = function(n) pb$tick())
-
-    results <- foreach(index = 1:nrow(grid_search), .options.snow = opts) %dopar% {
+    results <- pbmclapply(1:nrow(grid_search), function(index) {
 
       # Initialization
       ens_similar <- array(NA, dim = dim(ens_dev[, , flt_index, , drop = F]))
@@ -174,7 +169,7 @@ EITrans <- function(ens, ens_times, ens_flts,
            right_delta = grid_search$right_deltas[index],
            infinity_estimator = grid_search$infinity_estimator[index],
            multiplier = grid_search$multiplier[index])
-    }
+    })
 
     if (any(sapply(results, inherits, what = 'try-error'))) {
       warning('Grid search failed. Error messages are returned')
