@@ -101,9 +101,6 @@ EITrans <- function(ens, ens_times, ens_flts,
 
   cat('Prepare for grid search ...\n')
 
-  ens_train <- ens[, (ens_times %in% ens_times_train), , , drop = F]
-  obs_train <- obs[, (ens_times %in% ens_times_train), , drop = F]
-
   ens_dev <- ens[, (ens_times %in% ens_times_dev), , , drop = F]
   obs_dev <- obs[, (ens_times %in% ens_times_dev), , drop = F]
 
@@ -135,6 +132,7 @@ EITrans <- function(ens, ens_times, ens_flts,
 
     results <- foreach(index = 1:nrow(grid_search), .options.snow = opts) %dopar% {
 
+      # Initialization
       ens_similar <- array(NA, dim = dim(ens_dev[, , flt_index, , drop = F]))
       obs_similar <- array(NA, dim = dim(obs_dev[, , flt_index, drop = F]))
 
@@ -142,8 +140,8 @@ EITrans <- function(ens, ens_times, ens_flts,
       for (i in 1:dim(ens_similar)[1]) {
         for (j in 1:dim(ens_similar)[2]) {
           most_similar <- dev_AnEn$similarity_time_index[i, j, flt_index, 1]
-          ens_similar[i, j, 1, ] <- ens_train[i, most_similar, 1, ]
-          obs_similar[i, j, 1] <- obs_train[i, most_similar, 1]
+          ens_similar[i, j, 1, ] <- ens[i, most_similar, 1, ]
+          obs_similar[i, j, 1] <- obs[i, most_similar, 1]
         }
       }
 
@@ -156,6 +154,7 @@ EITrans <- function(ens, ens_times, ens_flts,
         infinity_estimator = grid_search$infinity_estimator[index],
         verbose = F, pre_sorted = T)
 
+      # Apply the scaling factor
       offset <- offset * grid_search$multiplier[index]
 
       # Calculate quality of this offset
@@ -169,7 +168,8 @@ EITrans <- function(ens, ens_times, ens_flts,
         obs.ver = obs_dev[, , flt_index, drop = F],
         show.progress = F, pre.sort = T)
 
-      list(offset = offset, rank = rh_dev_calibrated$rank,
+      list(offset = offset,
+           rank = rh_dev_calibrated$rank,
            left_delta = grid_search$left_deltas[index],
            right_delta = grid_search$right_deltas[index],
            infinity_estimator = grid_search$infinity_estimator[index],
