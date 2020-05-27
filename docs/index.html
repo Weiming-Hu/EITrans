@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">EITrans</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.1</span>
       </span>
     </div>
 
@@ -87,12 +87,14 @@
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
 <p>To install <code>EITrans</code>, first install the following dependent packages:</p>
-<pre><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("https://github.com/Weiming-Hu/AnalogsEnsemble/raw/master/RAnalogs/releases/RAnEn_latest.tar.gz", repos = NULL)
-devtools::install_github('RAnEnExtra')
+<pre><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages(c('progress', 'abind', 'foreach'))
 
-install.packages(c('progress', 'abind'))</a></code></pre>
-<p>The following packages are optional. They are mainly for high performance computing.</p>
-<pre><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages(c('doSNOW', 'Rmpi'))</a></code></pre>
+# More installation on the following package, please refer to
+# https://weiming-hu.github.io/AnalogsEnsemble/
+#
+install.packages("https://github.com/Weiming-Hu/AnalogsEnsemble/raw/master/RAnalogs/releases/RAnEn_latest.tar.gz", repos = NULL)
+
+devtools::install_github('RAnEnExtra')</a></code></pre>
 <p>Then, you can install <code>EITrans</code> by running</p>
 <pre><code><a href="https://rdrr.io/pkg/devtools/man/remote-reexports.html">devtools::install_github('Weiming-Hu/EITrans')</a></code></pre>
 <pre><code># "`-''-/").___..--''"`-._
