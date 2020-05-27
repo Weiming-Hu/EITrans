@@ -169,7 +169,7 @@ EITrans <- function(ens, ens_times, ens_flts,
            right_delta = grid_search$right_deltas[index],
            infinity_estimator = grid_search$infinity_estimator[index],
            multiplier = grid_search$multiplier[index])
-    })
+    }, mc.cores = grid_search_cores)
 
     if (any(sapply(results, inherits, what = 'try-error'))) {
       warning('Grid search failed. Error messages are returned')
