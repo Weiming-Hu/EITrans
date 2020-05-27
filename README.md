@@ -23,8 +23,6 @@ Please visit [my website](weiming-hu.github.io/) to learn more about my research
 
 ## Installation
 
-If you prefer to see examples, please refer to [this ticket](https://github.com/Weiming-Hu/EITrans/issues/1).
-
 To install `EITrans`, first install the following dependent packages:
 
 ```
