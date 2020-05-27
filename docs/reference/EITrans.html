@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EITrans</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.2</span>
       </span>
     </div>
 
@@ -127,7 +127,8 @@
   <span class='no'>infinity_estimator</span>,
   <span class='no'>multiplier</span>,
   <span class='kw'>circular_ens</span> <span class='kw'>=</span> <span class='no'>F</span>,
-  <span class='kw'>member_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
+  <span class='kw'>member_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>grid_search_cores</span> <span class='kw'>=</span> <span class='fu'>detectCores</span>()
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -185,6 +186,10 @@ ensemble member offset.</p></td>
       <th>member_weights</th>
       <td><p>Weights for each ensemble members when finding similar
 historical ensemble forecasts.</p></td>
+    </tr>
+    <tr>
+      <th>grid_search_cores</th>
+      <td><p>The number of cores to use during grid search.</p></td>
     </tr>
     <tr>
       <th>rigth_deltas</th>

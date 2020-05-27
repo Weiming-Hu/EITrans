@@ -17,7 +17,8 @@ EITrans(
   infinity_estimator,
   multiplier,
   circular_ens = F,
-  member_weights = NULL
+  member_weights = NULL,
+  grid_search_cores = detectCores()
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ ensemble member offset.}
 
 \item{member_weights}{Weights for each ensemble members when finding similar
 historical ensemble forecasts.}
+
+\item{grid_search_cores}{The number of cores to use during grid search.}
 
 \item{rigth_deltas}{A vector of right-edge deltas to experiment.}
 }
