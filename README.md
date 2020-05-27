@@ -23,10 +23,15 @@ Please visit [my website](weiming-hu.github.io/) to learn more about my research
 
 ## Installation
 
+If you prefer to see examples, please refer to [this ticket](https://github.com/Weiming-Hu/EITrans/issues/1).
+
 To install `EITrans`, first install the following dependent packages:
 
 ```
-install.packages(c('progress', 'abind', 'foreach'))
+# The repos argument is just to skip the repo selection.
+# You can simply omit the argument if you want.
+#
+install.packages(c('progress', 'abind', 'foreach'), repos = 'http://cran.us.r-project.org')
 
 # More installation on the following package, please refer to
 # https://weiming-hu.github.io/AnalogsEnsemble/
