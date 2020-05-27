@@ -36,7 +36,7 @@ install.packages(c('progress', 'abind', 'foreach'), repos = 'http://cran.us.r-pr
 #
 install.packages("https://github.com/Weiming-Hu/AnalogsEnsemble/raw/master/RAnalogs/releases/RAnEn_latest.tar.gz", repos = NULL)
 
-devtools::install_github('RAnEnExtra')
+devtools::install_github('Weiming-Hu/RAnEnExtra')
 ```
 
 Then, you can install `EITrans` by running
