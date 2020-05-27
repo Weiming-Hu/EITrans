@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • EITrans</title>
+<title>EITrans::EITrans — EITrans • EITrans</title>
 
 
 <!-- jquery -->
@@ -35,7 +35,9 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="EITrans::EITrans — EITrans" />
+<meta property="og:description" content="EITrans::EITrans is the main function for ensemble forecast calibration." />
+<meta name="twitter:card" content="summary" />
 
 
 
@@ -54,7 +56,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -101,60 +103,109 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>EITrans::EITrans</h1>
+    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/EITrans.R'><code>R/EITrans.R</code></a></small>
+    <div class="hidden name"><code>EITrans.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>EITrans::EITrans is the main function for ensemble forecast calibration.</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'>EITrans</span>(
+  <span class='no'>ens</span>,
+  <span class='no'>ens_times</span>,
+  <span class='no'>ens_flts</span>,
+  <span class='no'>ens_times_train</span>,
+  <span class='no'>ens_times_dev</span>,
+  <span class='no'>ens_times_test</span>,
+  <span class='no'>obs</span>,
+  <span class='no'>left_deltas</span>,
+  <span class='no'>right_deltas</span>,
+  <span class='no'>infinity_estimator</span>,
+  <span class='no'>multiplier</span>,
+  <span class='kw'>circular_ens</span> <span class='kw'>=</span> <span class='no'>F</span>,
+  <span class='kw'>member_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
+)</pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="EITrans.html">EITrans()</a></code> </p>
-        </td>
-        <td><p>EITrans::EITrans</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="check_delta.html">check_delta()</a></code> </p>
-        </td>
-        <td><p>EITrans::check_delta</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="member_offset.html">member_offset()</a></code> </p>
-        </td>
-        <td><p>EITrans::EITrans</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="univariate_ensemble_analogs.html">univariate_ensemble_analogs()</a></code> </p>
-        </td>
-        <td><p>EITrans::univariate_ensemble_analogs</p></td>
-      </tr>
-    </tbody>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>ens</th>
+      <td><p>A 4-dimensional array for ensemble forecasts. Dimensions should be
+<code>[stations, times, lead times, members]</code>.</p></td>
+    </tr>
+    <tr>
+      <th>ens_times</th>
+      <td><p>A vector for ensemble forecast times.</p></td>
+    </tr>
+    <tr>
+      <th>ens_flts</th>
+      <td><p>A vector for ensemble forecast lead times.</p></td>
+    </tr>
+    <tr>
+      <th>ens_times_train</th>
+      <td><p>Training times from the ensemble forecast times.</p></td>
+    </tr>
+    <tr>
+      <th>ens_times_dev</th>
+      <td><p>Development times from the ensemble forecast times.</p></td>
+    </tr>
+    <tr>
+      <th>ens_times_test</th>
+      <td><p>Testing times from the ensemble forecast times.</p></td>
+    </tr>
+    <tr>
+      <th>obs</th>
+      <td><p>A 3-dimensional array for observations that correspond to the
+ensemble forecasts. Dimensions should be <code>[stations, times, lead times]</code>.</p></td>
+    </tr>
+    <tr>
+      <th>left_deltas</th>
+      <td><p>A vector of left-edge deltas to experiment.</p></td>
+    </tr>
+    <tr>
+      <th>infinity_estimator</th>
+      <td><p>A vector of values to experiment for estimating
+the ensemble spread.</p></td>
+    </tr>
+    <tr>
+      <th>multiplier</th>
+      <td><p>A vector of values to experiment for adjusting the
+ensemble member offset.</p></td>
+    </tr>
+    <tr>
+      <th>circular_ens</th>
+      <td><p>Whether the ensemble forecast variable is circular.</p></td>
+    </tr>
+    <tr>
+      <th>member_weights</th>
+      <td><p>Weights for each ensemble members when finding similar
+historical ensemble forecasts.</p></td>
+    </tr>
+    <tr>
+      <th>rigth_deltas</th>
+      <td><p>A vector of right-edge deltas to experiment.</p></td>
+    </tr>
     </table>
-  </div>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>A list with the calibrated ensemble forecasts and intermediate results.</p>
+
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#arguments">Arguments</a></li>
+      <li><a href="#value">Value</a></li>
     </ul>
+
+    <h2>Author</h2>
+    <p>Weiming Hu <a href='mailto:weiming@psu.edu'>weiming@psu.edu</a></p>
   </div>
 </div>
 

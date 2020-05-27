@@ -14,6 +14,8 @@
 #'
 #' EITrans::EITrans is the main function for ensemble forecast calibration.
 #'
+#' @author Weiming Hu <weiming@@psu.edu>
+#'
 #' @param ens A 4-dimensional array for ensemble forecasts. Dimensions should be
 #' `[stations, times, lead times, members]`.
 #' @param ens_times A vector for ensemble forecast times.
@@ -32,14 +34,11 @@
 #' @param circular_ens Whether the ensemble forecast variable is circular.
 #' @param member_weights Weights for each ensemble members when finding similar
 #' historical ensemble forecasts.
-#' @param grid_search_cores The number of cores to use during experiments.
-#' @param grid_search_mpi Whether to use MPI during experiments.
 #'
 #' @return A list with the calibrated ensemble forecasts and intermediate results.
 #'
-#' @import doSNOW
-#' @import parallel
 #' @import foreach
+#' @import progress
 #'
 #' @md
 #' @export
@@ -49,19 +48,11 @@ EITrans <- function(ens, ens_times, ens_flts,
                     infinity_estimator,
                     multiplier,
                     circular_ens = F,
-                    member_weights = NULL,
-                    grid_search_cores = 1,
-                    grid_search_mpi = F) {
+                    member_weights = NULL) {
 
   # Sanity checks
-  stopifnot(length(dim(ens)) == 4)
-  stopifnot(dim(ens)[2] == length(ens_times))
-  stopifnot(dim(ens)[3] == length(ens_flts))
-
-  stopifnot(all(ens_times_train %in% ens_times))
-  stopifnot(all(ens_times_dev %in% ens_times))
+  cat('Start EITrans calibration ...\n')
   stopifnot(all(ens_times_test %in% ens_times))
-
   stopifnot(length(intersect(ens_times_test, ens_times_dev)) == 0)
   stopifnot(length(intersect(ens_times_test, ens_times_train)) == 0)
 
@@ -69,13 +60,6 @@ EITrans <- function(ens, ens_times, ens_flts,
   stopifnot(all.equal(dim(obs), dim(ens)[-4]))
 
   stopifnot(infinity_estimator > 0)
-
-  if (grid_search_mpi) {
-    stopifnot(requireNamespace('doSNOW', quietly = T))
-    stopifnot(requireNamespace('Rmpi', quietly = T))
-  }
-
-  stopifnot(grid_search_cores > 0)
 
   grid_search <- expand.grid(left_deltas = left_deltas,
                              right_deltas = right_deltas,
@@ -101,41 +85,14 @@ EITrans <- function(ens, ens_times, ens_flts,
   ens <- aperm(apply(ens, 1:3, sort, na.last = T), c(2, 3, 4, 1))
 
   cat('Identify similar ensemble forecasts for the dev period ...\n')
-
-  # Convert ensembles to RAnEn::Forecasts
-  fcsts <- RAnEn::generateForecastsTemplate()
-  fcsts$Data <- aperm(ens, c(4, 1, 2, 3))
-  fcsts$ParameterNames <- paste('member', 1:dim(fcsts$Data)[1], sep = '_')
-  if (circular_ens) fcsts$ParameterCirculars <- fcsts$ParameterNames
-  fcsts$Times <- ens_times
-  fcsts$FLTs <- ens_flts
-
-  # Generate observation placeholder
-  placeholder_obs <- RAnEn::generateObservationsTemplate()
-  placeholder_obs$ParameterNames <- 'Placeholder'
-  placeholder_obs$Times <- unique(rep(ens_times, each = length(ens_flts)) +
-                                    as.numeric(ens_flts))
-  placeholder_obs$Data <- array(1, dim = c(1, dim(fcsts$Data)[2],
-                                           length(placeholder_obs$Times)))
-
-  # Set up config
-  config <- new(RAnEn::Config)
-  config$num_similarity <- 1
-  config$quick <- F
-  config$operation <- F
-  config$save_analogs <- F
-  config$save_analogs_time_index <- F
-  config$save_similarity <- F
-  config$save_similarity_time_index <- T
-  if (!is.null(member_weights)) config$weights <- member_weights
-  config$verbose <- 3
-
-  # Find similar ensemble forecasts from the training period
-  dev_AnEn <- RAnEn::generateAnalogs(fcsts, placeholder_obs,
-                                     ens_times_dev, ens_times_train, config)
-
-  # Housekeeping
-  rm(config, placeholder_obs)
+  dev_AnEn <- univariate_ensemble_analogs(
+    ens = ens,
+    ens_times = ens_times,
+    ens_flts = ens_flts,
+    ens_times_train = ens_times_train,
+    ens_times_dev = ens_times_dev,
+    circular_ens = circular_ens,
+    member_weights = member_weights)
 
 
   #
@@ -160,16 +117,6 @@ EITrans <- function(ens, ens_times, ens_flts,
 
   best_combinations <- list()
 
-  # Create workers
-  cat('Creating', grid_search_cores, 'workers using',
-      ifelse(test = grid_search_mpi, yes = 'MPI', no = 'localhost'),
-      '...\n')
-
-  if (grid_search_mpi) cl <- makeCluster(grid_search_cores, type = 'MPI')
-  else cl <- makeCluster(grid_search_cores, type = 'SOCK')
-
-  registerDoSNOW(cl)
-
   for (flt_index in 1:dim(ens)[3]) {
 
     cat('Process forecast lead time', flt_index, '/', dim(ens)[3], '...\n')
@@ -179,56 +126,55 @@ EITrans <- function(ens, ens_times, ens_flts,
       obs.ver = obs_dev[, , flt_index, drop = F],
       show.progress = F, pre.sort = T)
 
-    # Initialize a progress bar
-    pb <- progress::progress_bar$new(
-      format = "Search progress [:bar] :elapsed | eta: :eta",
+    # Initialize progress bar
+    pb <- progress_bar$new(
+      format = "[:bar] :elapsed | eta: :eta",
       total = nrow(grid_search), clear = F)
 
     opts <- list(progress = function(n) pb$tick())
 
-    results <- foreach(index = 1:nrow(grid_search),
-                       .options.snow = opts) %dopar% {
+    results <- foreach(index = 1:nrow(grid_search), .options.snow = opts) %dopar% {
 
-                         ens_similar <- array(NA, dim = dim(ens_dev[, , flt_index, , drop = F]))
-                         obs_similar <- array(NA, dim = dim(obs_dev[, , flt_index, drop = F]))
+      ens_similar <- array(NA, dim = dim(ens_dev[, , flt_index, , drop = F]))
+      obs_similar <- array(NA, dim = dim(obs_dev[, , flt_index, drop = F]))
 
-                         # Use the most similar ensembles
-                         for (i in 1:dim(ens_similar)[1]) {
-                           for (j in 1:dim(ens_similar)[2]) {
-                             most_similar <- dev_AnEn$similarity_time_index[i, j, flt_index, 1]
-                             ens_similar[i, j, 1, ] <- ens_train[i, most_similar, 1, ]
-                             obs_similar[i, j, 1] <- obs_train[i, most_similar, 1]
-                           }
-                         }
+      # Use the most similar ensembles
+      for (i in 1:dim(ens_similar)[1]) {
+        for (j in 1:dim(ens_similar)[2]) {
+          most_similar <- dev_AnEn$similarity_time_index[i, j, flt_index, 1]
+          ens_similar[i, j, 1, ] <- ens_train[i, most_similar, 1, ]
+          obs_similar[i, j, 1] <- obs_train[i, most_similar, 1]
+        }
+      }
 
-                         # Calculate member offset
-                         offset <- member_offset(
-                           ensembles = ens_similar,
-                           observations = obs_similar,
-                           left_delta = grid_search$left_deltas[index],
-                           right_delta = grid_search$right_deltas[index],
-                           infinity_estimator = grid_search$infinity_estimator[index],
-                           verbose = F, pre_sorted = T)
+      # Calculate member offset
+      offset <- member_offset(
+        ensembles = ens_similar,
+        observations = obs_similar,
+        left_delta = grid_search$left_deltas[index],
+        right_delta = grid_search$right_deltas[index],
+        infinity_estimator = grid_search$infinity_estimator[index],
+        verbose = F, pre_sorted = T)
 
-                         offset <- offset * grid_search$multiplier[index]
+      offset <- offset * grid_search$multiplier[index]
 
-                         # Calculate quality of this offset
-                         ens_dev_calibrated <- aperm(
-                           apply(ens_dev[, , flt_index, , drop = F], 1:3,
-                                 function(x) x + offset),
-                           c(2, 3, 4, 1))
+      # Calculate quality of this offset
+      ens_dev_calibrated <- aperm(
+        apply(ens_dev[, , flt_index, , drop = F], 1:3,
+              function(x) x + offset),
+        c(2, 3, 4, 1))
 
-                         rh_dev_calibrated <- RAnEnExtra::verifyRankHist(
-                           anen.ver = ens_dev_calibrated,
-                           obs.ver = obs_dev[, , flt_index, drop = F],
-                           show.progress = F, pre.sort = T)
+      rh_dev_calibrated <- RAnEnExtra::verifyRankHist(
+        anen.ver = ens_dev_calibrated,
+        obs.ver = obs_dev[, , flt_index, drop = F],
+        show.progress = F, pre.sort = T)
 
-                         list(offset = offset, rank = rh_dev_calibrated$rank,
-                              left_delta = grid_search$left_deltas[index],
-                              right_delta = grid_search$right_deltas[index],
-                              infinity_estimator = grid_search$infinity_estimator[index],
-                              multiplier = grid_search$multiplier[index])
-                       }
+      list(offset = offset, rank = rh_dev_calibrated$rank,
+           left_delta = grid_search$left_deltas[index],
+           right_delta = grid_search$right_deltas[index],
+           infinity_estimator = grid_search$infinity_estimator[index],
+           multiplier = grid_search$multiplier[index])
+    }
 
     if (any(sapply(results, inherits, what = 'try-error'))) {
       warning('Grid search failed. Error messages are returned')
@@ -245,9 +191,6 @@ EITrans <- function(ens, ens_times, ens_flts,
       rh_dev = rh_dev,
       candidates = results)
   }
-
-  cat('Stopping clusters ...\n')
-  stopCluster(cl)
 
 
   #################################################################################
@@ -281,78 +224,4 @@ EITrans <- function(ens, ens_times, ens_flts,
 
   cat('EITrans Done!\n')
   return(calibration_results)
-}
-
-check_delta <- function(left_delta, right_delta, num_members) {
-  sample <- seq(0 + left_delta, 1 + right_delta, length.out =  num_members + 2)
-  sample <- sample[2:(num_members+1)]
-  if (any(sample <= 0)) stop(paste('Left delta (', left_delta, ') too small!'))
-  if (any(sample >= 1)) stop(paste('Right delta (', right_delta, ') too large!'))
-  return(NULL)
-}
-
-member_offset <- function(ensembles, observations,
-                          left_delta, right_delta,
-                          infinity_estimator = 1,
-                          verbose = T, pre_sorted = F) {
-
-  # Sanity check
-  stopifnot(length(dim(ensembles)) == 4)
-  stopifnot(length(dim(observations)) == 3)
-  stopifnot(all.equal(dim(ensembles)[1:3], dim(observations)))
-  if (!pre_sorted) stop('Must presort ensemble members!')
-
-  # Define the problem dimensions
-  num_stations <- dim(ensembles)[1]
-  num_times <- dim(ensembles)[2]
-  num_flts <- dim(ensembles)[3]
-  num_members <- dim(ensembles)[4]
-
-  # Sample from the cumulative probability space
-  sample <- seq(0 + left_delta, 1 + right_delta, length.out =  num_members + 2)
-  sample <- sample[2:(num_members+1)]
-  if (any(sample <= 0)) return('Left delta too small!')
-  if (any(sample >= 1)) return('Right delta too large!')
-
-  # Generating rank histogram
-  if (verbose) cat('Generating rank histogram ...\n')
-  rh <- RAnEnExtra::verifyRankHist(anen.ver = ensembles,
-                                   obs.ver = observations,
-                                   show.progress = verbose,
-                                   pre.sort = pre_sorted)
-  cum_sum <- c(0, cumsum(rh$rank))
-
-  # Calculate offset from the observation value
-  for (member_i in 1:dim(ensembles)[4]) {
-    ensembles[, , , member_i] <- abind::adrop(
-      ensembles[, , , member_i, drop = F], drop = 4) - observations
-  }
-
-  # Calculate the average offset from the observation values for all ensembles
-  if (verbose) cat('Calculating average offset of members ...\n')
-  average_offset <- apply(ensembles, 4, mean, na.rm = T)
-  average_offset <- c(
-
-    # The left-most value is to represent the smallest possible value (hence -Inf)
-    average_offset[1] - infinity_estimator * (mean(average_offset) - average_offset[1]),
-
-    # The original values
-    average_offset,
-
-    # The right-most value is to represent the largest possible value (hence Inf)
-    average_offset[num_members] + infinity_estimator * (
-      average_offset[num_members] - mean(average_offset)))
-
-  # Create the new offset
-  resampled_offset <- sapply(sample, function(x) {
-    vec <- x - cum_sum
-    i <- which(vec < 0)[1]
-
-    approx(x = cum_sum[c(i-1, i)], y = average_offset[c(i-1, i)], xout = x)$y
-  })
-
-  ensemble_offset <- resampled_offset - average_offset[-c(1, num_members + 2)]
-
-  if (verbose) cat('Done!\n')
-  return(ensemble_offset)
 }

@@ -17,9 +17,7 @@ EITrans(
   infinity_estimator,
   multiplier,
   circular_ens = F,
-  member_weights = NULL,
-  grid_search_cores = 1,
-  grid_search_mpi = F
+  member_weights = NULL
 )
 }
 \arguments{
@@ -52,10 +50,6 @@ ensemble member offset.}
 \item{member_weights}{Weights for each ensemble members when finding similar
 historical ensemble forecasts.}
 
-\item{grid_search_cores}{The number of cores to use during experiments.}
-
-\item{grid_search_mpi}{Whether to use MPI during experiments.}
-
 \item{rigth_deltas}{A vector of right-edge deltas to experiment.}
 }
 \value{
@@ -63,4 +57,7 @@ A list with the calibrated ensemble forecasts and intermediate results.
 }
 \description{
 EITrans::EITrans is the main function for ensemble forecast calibration.
+}
+\author{
+Weiming Hu \href{mailto:weiming@psu.edu}{weiming@psu.edu}
 }

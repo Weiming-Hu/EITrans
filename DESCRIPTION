@@ -12,12 +12,8 @@ Imports:
     abind,
     RAnEn,
     RAnEnExtra,
-    progress,
-    doSNOW,
-    parallel,
     foreach,
-Suggests:
-    Rmpi,
+    progress
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.0.1
