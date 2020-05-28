@@ -34,12 +34,49 @@
 #' @param circular_ens Whether the ensemble forecast variable is circular.
 #' @param member_weights Weights for each ensemble members when finding similar
 #' historical ensemble forecasts.
-#' @param grid_search_cores The number of cores to use during grid search.
 #'
 #' @return A list with the calibrated ensemble forecasts and intermediate results.
 #'
-#' @import pbmcapply
-#' @import parallel
+#' @import foreach
+#'
+#' @examples
+#'
+#' \dontrun{
+#'
+#' # If you are using MPI. Remember that you need to lauch this program with mpirun.
+#' # I didn't have too much luck with the MPI spawn mechannism due to the hanging problem
+#' # from Rmpi.
+#' #
+#' cl <- doMPI::startMPIcluster()
+#' doMPI::registerDoMPI(cl)
+#'
+#' # If you are using doSNOW
+#' cl <- snow::makeCluster()
+#' doSNOW::registerDoSNOW(cl)
+#'
+#' eitrans_results <- EITrans(
+#'   ens = ens$analogs,
+#'   ens_times = ens$test_times,
+#'   ens_flts = ens$flts,
+#'
+#'   ens_times_train = ens$test_times[1:(test_start - 366)],
+#'   ens_times_dev = ens$test_times[(test_start - 365):(test_start - 1)],
+#'   ens_times_test = ens$test_times[test_start:test_end],
+#'
+#'   obs = ens$obs_aligned,
+#'
+#'   left_deltas = seq(-0.046, 0.12, by = 0.002),
+#'   right_deltas = seq(-0.02, 0.044, by = 0.002),
+#'   infinity_estimator = seq(0.1, 0.5, by = 0.1),
+#'   multiplier = seq(0.1, 1.1, by = 0.1))
+#'
+#' # If you are using MPI
+#' doMPI::closeCluster(cl)
+#' Rmpi::mpi.exit()
+#'
+#' # If you are using doSNOW
+#' snow::stopCluster(cl)
+#' }
 #'
 #' @md
 #' @export
@@ -49,11 +86,11 @@ EITrans <- function(ens, ens_times, ens_flts,
                     infinity_estimator,
                     multiplier,
                     circular_ens = F,
-                    member_weights = NULL,
-                    grid_search_cores = detectCores()) {
+                    member_weights = NULL) {
 
   # Sanity checks
   cat('Start EITrans calibration ...\n')
+  stopifnot(packageVersion('RAnEn') >= '4.0.8')
   stopifnot(all(ens_times_test %in% ens_times))
   stopifnot(length(intersect(ens_times_test, ens_times_dev)) == 0)
   stopifnot(length(intersect(ens_times_test, ens_times_train)) == 0)
@@ -72,6 +109,9 @@ EITrans <- function(ens, ens_times, ens_flts,
     check_delta(grid_search$left_deltas[i],
                 grid_search$right_deltas[i],
                 dim(ens)[4])})
+
+  if (!getDoParRegistered()) stop(
+    'Register your workers (doMPI for multinode and doSNOW for multicores) for parallel processing!')
 
 
   #################################################################################
@@ -125,7 +165,7 @@ EITrans <- function(ens, ens_times, ens_flts,
       obs.ver = obs_dev[, , flt_index, drop = F],
       show.progress = F, pre.sort = T)
 
-    results <- pbmclapply(1:nrow(grid_search), function(index) {
+    results <- foreach(index = 1:nrow(grid_search)) %dopar% {
 
       # Initialization
       ens_similar <- array(NA, dim = dim(ens_dev[, , flt_index, , drop = F]))
@@ -169,7 +209,7 @@ EITrans <- function(ens, ens_times, ens_flts,
            right_delta = grid_search$right_deltas[index],
            infinity_estimator = grid_search$infinity_estimator[index],
            multiplier = grid_search$multiplier[index])
-    }, mc.cores = grid_search_cores)
+    }
 
     if (any(sapply(results, inherits, what = 'try-error'))) {
       warning('Grid search failed. Error messages are returned')

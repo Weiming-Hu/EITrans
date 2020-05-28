@@ -17,8 +17,7 @@ EITrans(
   infinity_estimator,
   multiplier,
   circular_ens = F,
-  member_weights = NULL,
-  grid_search_cores = detectCores()
+  member_weights = NULL
 )
 }
 \arguments{
@@ -51,8 +50,6 @@ ensemble member offset.}
 \item{member_weights}{Weights for each ensemble members when finding similar
 historical ensemble forecasts.}
 
-\item{grid_search_cores}{The number of cores to use during grid search.}
-
 \item{rigth_deltas}{A vector of right-edge deltas to experiment.}
 }
 \value{
@@ -60,6 +57,46 @@ A list with the calibrated ensemble forecasts and intermediate results.
 }
 \description{
 EITrans::EITrans is the main function for ensemble forecast calibration.
+}
+\examples{
+
+\dontrun{
+
+# If you are using MPI. Remember that you need to lauch this program with mpirun.
+# I didn't have too much luck with the MPI spawn mechannism due to the hanging problem
+# from Rmpi.
+#
+cl <- doMPI::startMPIcluster()
+doMPI::registerDoMPI(cl)
+
+# If you are using doSNOW
+cl <- snow::makeCluster()
+doSNOW::registerDoSNOW(cl)
+
+eitrans_results <- EITrans(
+  ens = ens$analogs,
+  ens_times = ens$test_times,
+  ens_flts = ens$flts,
+
+  ens_times_train = ens$test_times[1:(test_start - 366)],
+  ens_times_dev = ens$test_times[(test_start - 365):(test_start - 1)],
+  ens_times_test = ens$test_times[test_start:test_end],
+
+  obs = ens$obs_aligned,
+
+  left_deltas = seq(-0.046, 0.12, by = 0.002),
+  right_deltas = seq(-0.02, 0.044, by = 0.002),
+  infinity_estimator = seq(0.1, 0.5, by = 0.1),
+  multiplier = seq(0.1, 1.1, by = 0.1))
+
+# If you are using MPI
+doMPI::closeCluster(cl)
+Rmpi::mpi.exit()
+
+# If you are using doSNOW
+snow::stopCluster(cl)
+}
+
 }
 \author{
 Weiming Hu \href{mailto:weiming@psu.edu}{weiming@psu.edu}
