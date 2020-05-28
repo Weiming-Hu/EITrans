@@ -81,7 +81,7 @@ univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
     config$save_similarity <- F
     config$save_similarity_time_index <- T
     if (!is.null(member_weights)) config$weights <- member_weights
-    config$verbose <- 3
+    config$verbose <- 1
 
     # Find similar ensemble forecasts from the training period
     AnEn <- RAnEn::generateAnalogs(fcsts, placeholder_obs,
