@@ -16,9 +16,9 @@ This package proposes an algorithm that use [weather analogs](https://weiming-hu
 
 The package is currently under-developing and relevant research is continuing.
 
-Please visit [Analog Ensembles](weiming-hu.github.io/) to learn more about weather analogs.
+Please visit [Analog Ensembles](https://weiming-hu.github.io/AnalogsEnsemble/) to learn more about weather analogs.
 
-Please visit [my website](weiming-hu.github.io/) to learn more about my research.
+Please visit [my website](https://weiming-hu.github.io/) to learn more about my research.
 
 
 ## Installation
