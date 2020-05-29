@@ -14,6 +14,11 @@
 #'
 #' EITrans::EITrans is the main function for ensemble forecast calibration.
 #'
+#' @details
+#' This function uses `foreach` parallel mechanism. Parallelization is handled
+#' by users creating the parallel backend. Please see examples. It is recommended
+#' to use `doSNOW` for handling backend.
+#'
 #' @author Weiming Hu <weiming@@psu.edu>
 #'
 #' @param ens A 4-dimensional array for ensemble forecasts. Dimensions should be
@@ -38,21 +43,21 @@
 #' @return A list with the calibrated ensemble forecasts and intermediate results.
 #'
 #' @import foreach
+#' @import progress
 #'
 #' @examples
 #'
 #' \dontrun{
-#'
-#' # If you are using MPI. Remember that you need to lauch this program with mpirun.
-#' # I didn't have too much luck with the MPI spawn mechannism due to the hanging problem
-#' # from Rmpi.
-#' #
-#' cl <- doMPI::startMPIcluster()
-#' doMPI::registerDoMPI(cl)
-#'
-#' # If you are using doSNOW
+#' # Use doSNOW to launch parallel backend
+#' library(doSNOW)
 #' cl <- snow::makeCluster()
-#' doSNOW::registerDoSNOW(cl)
+#' registerDoSNOW(cl)
+#'
+#' # If you know a host file, you can also launch on remote server
+#' nodefile <- Sys.getenv("PBS_NODEFILE")
+#' nodes <- readLines(nodefile)
+#' cl <- makeCluster(nodes, type = "SOCK")
+#' registerDoSNOW(cl)
 #'
 #' eitrans_results <- EITrans(
 #'   ens = ens$analogs,
@@ -70,12 +75,8 @@
 #'   infinity_estimator = seq(0.1, 0.5, by = 0.1),
 #'   multiplier = seq(0.1, 1.1, by = 0.1))
 #'
-#' # If you are using MPI
-#' doMPI::closeCluster(cl)
-#' Rmpi::mpi.exit()
-#'
 #' # If you are using doSNOW
-#' snow::stopCluster(cl)
+#' stopCluster(cl)
 #' }
 #'
 #' @md
@@ -165,7 +166,15 @@ EITrans <- function(ens, ens_times, ens_flts,
       obs.ver = obs_dev[, , flt_index, drop = F],
       show.progress = F, pre.sort = T)
 
-    results <- foreach(index = 1:nrow(grid_search)) %dopar% {
+    # Initialize a progress bar
+    pb <- progress_bar$new(
+      format = "[:bar] :percent eta: :eta",
+      total = nrow(grid_search), clear = F)
+
+    opts <- list(progress = function(n) pb$tick())
+
+    results <- foreach(index = 1:nrow(grid_search),
+                       .options.snow = opts) %dopar% {
 
       # Initialization
       ens_similar <- array(NA, dim = dim(ens_dev[, , flt_index, , drop = F]))

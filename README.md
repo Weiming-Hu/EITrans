@@ -29,7 +29,7 @@ To install `EITrans`, first install the following dependent packages:
 # The repos argument is just to skip the repo selection.
 # You can simply omit the argument if you want.
 #
-install.packages(c('abind', 'foreach'), repos = 'http://cran.us.r-project.org')
+install.packages(c('abind', 'foreach', 'progress'), repos = 'http://cran.us.r-project.org')
 
 # More installation on the following package, please refer to
 # https://weiming-hu.github.io/AnalogsEnsemble/

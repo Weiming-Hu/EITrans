@@ -30,6 +30,7 @@
 #'
 #' @import RAnEn
 #' @import foreach
+#' @import progress
 #'
 #' @md
 #' @export
@@ -48,8 +49,16 @@ univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
   if (!is.null(member_weights)) stopifnot(
     is.numeric(member_weights) & length(member_weights) == dim(ens)[4])
 
+  # Initialize a progress bar
+  pb <- progress_bar$new(
+    format = "[:bar] :percent eta: :eta",
+    total = dim(ens)[1], clear = F)
+
+  opts <- list(progress = function(n) pb$tick())
+
   # Generate analogs for each station separately
-  results <- foreach(station_index = 1:dim(ens)[1]) %dopar% {
+  results <- foreach(station_index = 1:dim(ens)[1],
+                     .options.snow = opts) %dopar% {
 
     # Take care of threads
     num_threads <- RAnEn::getNumThreads()
