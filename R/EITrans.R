@@ -212,13 +212,7 @@ EITrans <- function(ens, ens_times, ens_flts,
         obs.ver = obs_dev[, , flt_index, drop = F],
         show.progress = F, pre.sort = T)
 
-      list(offset = offset,
-           rank = rh_dev_calibrated$rank,
-           left_delta = grid_search$left_deltas[index],
-           right_delta = grid_search$right_deltas[index],
-           infinity_estimator = grid_search$infinity_estimator[index],
-           multiplier = grid_search$multiplier[index],
-           system_info = Sys.info())
+      list(offset = offset, rank = rh_dev_calibrated$rank)
     }
 
     if (any(sapply(results, inherits, what = 'try-error'))) {
@@ -232,9 +226,7 @@ EITrans <- function(ens, ens_times, ens_flts,
     # Store this best combination
     best_combinations[[flt_index]] <- list(
       offset = results[[best_index]]$offset,
-      index = best_index,
-      rh_dev = rh_dev,
-      candidates = results)
+      index = best_index)
   }
 
 
