@@ -208,7 +208,8 @@ EITrans <- function(ens, ens_times, ens_flts,
            left_delta = grid_search$left_deltas[index],
            right_delta = grid_search$right_deltas[index],
            infinity_estimator = grid_search$infinity_estimator[index],
-           multiplier = grid_search$multiplier[index])
+           multiplier = grid_search$multiplier[index],
+           system_info = Sys.info())
     }
 
     if (any(sapply(results, inherits, what = 'try-error'))) {
