@@ -111,7 +111,7 @@ EITrans <- function(ens, ens_times, ens_flts,
                 grid_search$right_deltas[i],
                 dim(ens)[4])})
 
-  if (!getDoParRegistered()) stop(
+  if (!getDoParRegistered()) warning(
     'Register your workers (doMPI for multinode and doSNOW for multicores) for parallel processing!')
 
 
