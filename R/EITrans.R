@@ -39,6 +39,7 @@
 #' @param circular_ens Whether the ensemble forecast variable is circular.
 #' @param member_weights Weights for each ensemble members when finding similar
 #' historical ensemble forecasts.
+#' @param pre_sorted Whether the ensemble members are presorted.
 #'
 #' @return A list with the calibrated ensemble forecasts and intermediate results.
 #'
@@ -87,7 +88,8 @@ EITrans <- function(ens, ens_times, ens_flts,
                     infinity_estimator,
                     multiplier,
                     circular_ens = F,
-                    member_weights = NULL) {
+                    member_weights = NULL,
+                    pre_sorted = F) {
 
   # Sanity checks
   cat('Start EITrans calibration ...\n')
@@ -124,8 +126,10 @@ EITrans <- function(ens, ens_times, ens_flts,
   # 1. Identify similar ensemble forecasts for ens_times_dev using ens_times_train
   #
 
-  cat('Pre-sort ensemble forecast memebers ...\n')
-  ens <- aperm(apply(ens, 1:3, sort, na.last = T), c(2, 3, 4, 1))
+  if (!pre_sorted) {
+    cat('Pre-sort ensemble forecast memebers ...\n')
+    ens <- aperm(apply(ens, 1:3, sort, na.last = T), c(2, 3, 4, 1))
+  }
 
   cat('Identify similar ensemble forecasts for the dev period ...\n')
   dev_AnEn <- univariate_ensemble_analogs(
