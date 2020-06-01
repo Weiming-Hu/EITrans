@@ -33,7 +33,7 @@
 #' @param left_deltas A vector of left-edge deltas to experiment.
 #' @param rigth_deltas A vector of right-edge deltas to experiment.
 #' @param infinity_estimator A vector of values to experiment for estimating
-#' the ensemble spread. Or a data frame with columns `left` and `right` for
+#' the ensemble spread. Or a list with named members `left` and `right` for
 #' different left/right infinity estimators.
 #' @param multiplier A vector of values to experiment for adjusting the
 #' ensemble member offset.
@@ -102,8 +102,8 @@ EITrans <- function(ens, ens_times, ens_flts,
   stopifnot(length(dim(obs)) == 3)
   stopifnot(all.equal(dim(obs), dim(ens)[-4]))
 
-  if (inherits(infinity_estimator, 'data.frame')) {
-    stopifnot(all(colnames(infinity_estimator) %in% c('left', 'right')))
+  if (inherits(infinity_estimator, 'list')) {
+    stopifnot(all(names(infinity_estimator) %in% c('left', 'right')))
     left_infinity <- infinity_estimator$left
     right_infinity <- infinity_estimator$right
 

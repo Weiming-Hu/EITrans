@@ -41,7 +41,7 @@ ensemble forecasts. Dimensions should be \verb{[stations, times, lead times]}.}
 \item{left_deltas}{A vector of left-edge deltas to experiment.}
 
 \item{infinity_estimator}{A vector of values to experiment for estimating
-the ensemble spread. Or a data frame with columns \code{left} and \code{right} for
+the ensemble spread. Or a list with named members \code{left} and \code{right} for
 different left/right infinity estimators.}
 
 \item{multiplier}{A vector of values to experiment for adjusting the
