@@ -62,7 +62,7 @@ univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
 
     # Take care of threads
     num_threads <- RAnEn::getNumThreads()
-    RAnEn::setNumThreads(1)
+    if (foreach::getDoParRegistered()) RAnEn::setNumThreads(1)
 
     # Convert ensembles to RAnEn::Forecasts
     fcsts <- RAnEn::generateForecastsTemplate()
