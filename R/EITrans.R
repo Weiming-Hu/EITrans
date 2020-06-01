@@ -33,7 +33,8 @@
 #' @param left_deltas A vector of left-edge deltas to experiment.
 #' @param rigth_deltas A vector of right-edge deltas to experiment.
 #' @param infinity_estimator A vector of values to experiment for estimating
-#' the ensemble spread.
+#' the ensemble spread. Or a data frame with columns `left` and `right` for
+#' different left/right infinity estimators.
 #' @param multiplier A vector of values to experiment for adjusting the
 #' ensemble member offset.
 #' @param circular_ens Whether the ensemble forecast variable is circular.
@@ -101,12 +102,25 @@ EITrans <- function(ens, ens_times, ens_flts,
   stopifnot(length(dim(obs)) == 3)
   stopifnot(all.equal(dim(obs), dim(ens)[-4]))
 
-  stopifnot(infinity_estimator > 0)
+  if (inherits(infinity_estimator, 'data.frame')) {
+    stopifnot(all(colnames(infinity_estimator) %in% c('left', 'right')))
+    left_infinity <- infinity_estimator$left
+    right_infinity <- infinity_estimator$right
+
+  } else {
+    stopifnot(all(infinity_estimator > 0))
+    left_infinity <- right_infinity <- infinity_estimator
+  }
+
+  stopifnot(all(multiplier > 0))
 
   grid_search <- expand.grid(left_deltas = left_deltas,
                              right_deltas = right_deltas,
-                             infinity_estimator = infinity_estimator,
+                             left_infinity = left_infinity,
+                             right_infinity = right_infinity,
                              multiplier = multiplier)
+
+  rm(right_infinity, left_infinity)
 
   lapply(1:nrow(grid_search), function(i) {
     check_delta(grid_search$left_deltas[i],
@@ -199,7 +213,8 @@ EITrans <- function(ens, ens_times, ens_flts,
         observations = obs_similar,
         left_delta = grid_search$left_deltas[index],
         right_delta = grid_search$right_deltas[index],
-        infinity_estimator = grid_search$infinity_estimator[index],
+        left_infinity_estimator = grid_search$left_infinity[index],
+        right_infinity_estimator = grid_search$right_infinity[index],
         verbose = F, pre_sorted = T)
 
       # Apply the scaling factor

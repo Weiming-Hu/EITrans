@@ -32,7 +32,8 @@
 #' `[stations, times, forecast lead times]`
 #' @param left_delta A scalar addition offset for the minimum during sampling
 #' @param right_delta A scalar addition offset for the maximum during sampling
-#' @param infinity_estimator A scalar to scaling the spread of the ensemble
+#' @param left_infinity_estimator A scalar to scaling the minimum of the ensemble
+#' @param right_infinity_estimator A scalar to scaling the maximum of the ensemble
 #' @param verbose Whether to be verbose
 #' @param pre_sorted Whether the input ensemble members are pre-sorted. Use pre-sorted
 #' ensembles will save you about 80% of the execution time. To pre-sort your ensembles,
@@ -46,7 +47,8 @@
 #' @export
 member_offset <- function(ensembles, observations,
                           left_delta, right_delta,
-                          infinity_estimator = 1,
+                          left_infinity_estimator = 1,
+                          right_infinity_estimator = 1,
                           verbose = T, pre_sorted = F) {
 
   # Sanity check
@@ -87,13 +89,14 @@ member_offset <- function(ensembles, observations,
   average_offset <- c(
 
     # The left-most value is to represent the smallest possible value (hence -Inf)
-    average_offset[1] - infinity_estimator * (mean(average_offset) - average_offset[1]),
+    average_offset[1] - left_infinity_estimator * (
+      mean(average_offset) - average_offset[1]),
 
     # The original values
     average_offset,
 
     # The right-most value is to represent the largest possible value (hence Inf)
-    average_offset[num_members] + infinity_estimator * (
+    average_offset[num_members] + right_infinity_estimator * (
       average_offset[num_members] - mean(average_offset)))
 
   # Create the new offset

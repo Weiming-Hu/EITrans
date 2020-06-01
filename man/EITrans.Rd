@@ -17,7 +17,8 @@ EITrans(
   infinity_estimator,
   multiplier,
   circular_ens = F,
-  member_weights = NULL
+  member_weights = NULL,
+  pre_sorted = F
 )
 }
 \arguments{
@@ -40,7 +41,8 @@ ensemble forecasts. Dimensions should be \verb{[stations, times, lead times]}.}
 \item{left_deltas}{A vector of left-edge deltas to experiment.}
 
 \item{infinity_estimator}{A vector of values to experiment for estimating
-the ensemble spread.}
+the ensemble spread. Or a data frame with columns \code{left} and \code{right} for
+different left/right infinity estimators.}
 
 \item{multiplier}{A vector of values to experiment for adjusting the
 ensemble member offset.}
@@ -49,6 +51,8 @@ ensemble member offset.}
 
 \item{member_weights}{Weights for each ensemble members when finding similar
 historical ensemble forecasts.}
+
+\item{pre_sorted}{Whether the ensemble members are presorted.}
 
 \item{rigth_deltas}{A vector of right-edge deltas to experiment.}
 }

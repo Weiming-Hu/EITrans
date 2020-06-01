@@ -9,7 +9,8 @@ member_offset(
   observations,
   left_delta,
   right_delta,
-  infinity_estimator = 1,
+  left_infinity_estimator = 1,
+  right_infinity_estimator = 1,
   verbose = T,
   pre_sorted = F
 )
@@ -25,7 +26,9 @@ member_offset(
 
 \item{right_delta}{A scalar addition offset for the maximum during sampling}
 
-\item{infinity_estimator}{A scalar to scaling the spread of the ensemble}
+\item{left_infinity_estimator}{A scalar to scaling the minimum of the ensemble}
+
+\item{right_infinity_estimator}{A scalar to scaling the maximum of the ensemble}
 
 \item{verbose}{Whether to be verbose}
 
