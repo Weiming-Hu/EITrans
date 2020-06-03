@@ -41,6 +41,7 @@
 #' @param member_weights Weights for each ensemble members when finding similar
 #' historical ensemble forecasts.
 #' @param pre_sorted Whether the ensemble members are presorted.
+#' @param save_intermediate Whether to save intermediate data.
 #'
 #' @return A list with the calibrated ensemble forecasts and intermediate results.
 #'
@@ -90,7 +91,8 @@ EITrans <- function(ens, ens_times, ens_flts,
                     multiplier,
                     circular_ens = F,
                     member_weights = NULL,
-                    pre_sorted = F) {
+                    pre_sorted = F,
+                    save_intermediate = F) {
 
   # Sanity checks
   cat('Start EITrans calibration ...\n')
@@ -179,11 +181,6 @@ EITrans <- function(ens, ens_times, ens_flts,
 
     cat('Process forecast lead time', flt_index, '/', dim(ens)[3], '...\n')
 
-    rh_dev <- RAnEnExtra::verifyRankHist(
-      anen.ver = ens_dev[, , flt_index, , drop = F],
-      obs.ver = obs_dev[, , flt_index, drop = F],
-      show.progress = F, pre.sort = T)
-
     # Initialize a progress bar
     pb <- progress_bar$new(
       format = "[:bar] :percent eta: :eta",
@@ -246,6 +243,16 @@ EITrans <- function(ens, ens_times, ens_flts,
     best_combinations[[flt_index]] <- list(
       offset = results[[best_index]]$offset,
       index = best_index)
+
+    if (save_intermediate) {
+      best_combinations[[flt_index]]$original_rank <-
+        RAnEnExtra::verifyRankHist(
+          anen.ver = ens_dev[, , flt_index, , drop = F],
+          obs.ver = obs_dev[, , flt_index, drop = F],
+          show.progress = F, pre.sort = T)$rank
+
+      best_combinations[[flt_index]]$calibrated_rank <- results[[best_index]]$rank
+    }
   }
 
 
