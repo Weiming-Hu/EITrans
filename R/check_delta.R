@@ -26,7 +26,11 @@
 check_delta <- function(left_delta, right_delta, num_members) {
   sample <- seq(0 + left_delta, 1 + right_delta, length.out =  num_members + 2)
   sample <- sample[2:(num_members+1)]
-  if (any(sample <= 0)) stop(paste('Left delta (', left_delta, ') too small!'))
-  if (any(sample >= 1)) stop(paste('Right delta (', right_delta, ') too large!'))
-  return(NULL)
+
+  if (any(sample <= 0) | any(sample >= 1)) {
+    msg <- paste0('[', left_delta, ', ', 1 + right_delta, '] with ', num_members,
+                  ' members leads to out-of-boundary values [',
+                  paste(range(sample), collapse = ','), ']')
+    stop(msg)
+  }
 }

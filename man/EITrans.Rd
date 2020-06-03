@@ -9,16 +9,15 @@ EITrans(
   ens_times,
   ens_flts,
   ens_times_train,
-  ens_times_dev,
   ens_times_test,
   obs,
-  left_deltas,
-  right_deltas,
-  infinity_estimator,
-  multiplier,
+  deltas,
+  infinity_estimators,
+  multipliers,
   circular_ens = F,
   member_weights = NULL,
-  pre_sorted = F
+  pre_sorted = F,
+  save_intermediate = F
 )
 }
 \arguments{
@@ -31,20 +30,19 @@ EITrans(
 
 \item{ens_times_train}{Training times from the ensemble forecast times.}
 
-\item{ens_times_dev}{Development times from the ensemble forecast times.}
-
 \item{ens_times_test}{Testing times from the ensemble forecast times.}
 
 \item{obs}{A 3-dimensional array for observations that correspond to the
 ensemble forecasts. Dimensions should be \verb{[stations, times, lead times]}.}
 
-\item{left_deltas}{A vector of left-edge deltas to experiment.}
+\item{deltas}{A vector of deltas to experiment. It can also be a list with
+\code{left} and \code{right} to explicitly control deltas for edges.}
 
-\item{infinity_estimator}{A vector of values to experiment for estimating
+\item{infinity_estimators}{A vector of values to experiment for estimating
 the ensemble spread. Or a list with named members \code{left} and \code{right} for
 different left/right infinity estimators.}
 
-\item{multiplier}{A vector of values to experiment for adjusting the
+\item{multipliers}{A vector of values to experiment for adjusting the
 ensemble member offset.}
 
 \item{circular_ens}{Whether the ensemble forecast variable is circular.}
@@ -54,25 +52,26 @@ historical ensemble forecasts.}
 
 \item{pre_sorted}{Whether the ensemble members are presorted.}
 
-\item{rigth_deltas}{A vector of right-edge deltas to experiment.}
+\item{save_intermediate}{Whether to save intermediate data.}
 }
 \value{
 A list with the calibrated ensemble forecasts and intermediate results.
 }
 \description{
-EITrans::EITrans is the main function for ensemble forecast calibration.
+EITrans::EITrans is the main function for ensemble forecast calibration with the empirical
+inverse transform function method.
 }
 \details{
 This function uses \code{foreach} parallel mechanism. Parallelization is handled
 by users creating the parallel backend. Please see examples. It is recommended
-to use \code{doSNOW} for handling backend.
+to use \code{doSNOW} for handling the parallel backend.
 }
 \examples{
 
 \dontrun{
 # Use doSNOW to launch parallel backend
 library(doSNOW)
-cl <- snow::makeCluster()
+cl <- snow::makeCluster(4) # Use 4 cores
 registerDoSNOW(cl)
 
 # If you know a host file, you can also launch on remote server
@@ -87,15 +86,13 @@ eitrans_results <- EITrans(
   ens_flts = ens$flts,
 
   ens_times_train = ens$test_times[1:(test_start - 366)],
-  ens_times_dev = ens$test_times[(test_start - 365):(test_start - 1)],
   ens_times_test = ens$test_times[test_start:test_end],
 
   obs = ens$obs_aligned,
 
-  left_deltas = seq(-0.046, 0.12, by = 0.002),
-  right_deltas = seq(-0.02, 0.044, by = 0.002),
-  infinity_estimator = seq(0.1, 0.5, by = 0.1),
-  multiplier = seq(0.1, 1.1, by = 0.1))
+  deltas = seq(-0.02, 0.044, by = 0.002),
+  infinity_estimators = seq(0.1, 0.5, by = 0.1),
+  multipliers = seq(0.1, 1.1, by = 0.1))
 
 # If you are using doSNOW
 stopCluster(cl)

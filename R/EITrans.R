@@ -12,13 +12,14 @@
 
 #' EITrans::EITrans
 #'
-#' EITrans::EITrans is the main function for ensemble forecast calibration.
+#' EITrans::EITrans is the main function for ensemble forecast calibration with the empirical
+#' inverse transform function method.
 #'
 #' @details
 #' This function uses `foreach` parallel mechanism. Parallelization is handled
 #' by users creating the parallel backend. Please see examples. It is recommended
-#' to use `doSNOW` for handling backend.
-#'
+#' to use `doSNOW` for handling the parallel backend.
+
 #' @author Weiming Hu <weiming@@psu.edu>
 #'
 #' @param ens A 4-dimensional array for ensemble forecasts. Dimensions should be
@@ -26,16 +27,15 @@
 #' @param ens_times A vector for ensemble forecast times.
 #' @param ens_flts A vector for ensemble forecast lead times.
 #' @param ens_times_train Training times from the ensemble forecast times.
-#' @param ens_times_dev Development times from the ensemble forecast times.
 #' @param ens_times_test Testing times from the ensemble forecast times.
 #' @param obs A 3-dimensional array for observations that correspond to the
 #' ensemble forecasts. Dimensions should be `[stations, times, lead times]`.
-#' @param left_deltas A vector of left-edge deltas to experiment.
-#' @param rigth_deltas A vector of right-edge deltas to experiment.
-#' @param infinity_estimator A vector of values to experiment for estimating
+#' @param deltas A vector of deltas to experiment. It can also be a list with
+#' `left` and `right` to explicitly control deltas for edges.
+#' @param infinity_estimators A vector of values to experiment for estimating
 #' the ensemble spread. Or a list with named members `left` and `right` for
 #' different left/right infinity estimators.
-#' @param multiplier A vector of values to experiment for adjusting the
+#' @param multipliers A vector of values to experiment for adjusting the
 #' ensemble member offset.
 #' @param circular_ens Whether the ensemble forecast variable is circular.
 #' @param member_weights Weights for each ensemble members when finding similar
@@ -53,7 +53,7 @@
 #' \dontrun{
 #' # Use doSNOW to launch parallel backend
 #' library(doSNOW)
-#' cl <- snow::makeCluster()
+#' cl <- snow::makeCluster(4) # Use 4 cores
 #' registerDoSNOW(cl)
 #'
 #' # If you know a host file, you can also launch on remote server
@@ -68,15 +68,13 @@
 #'   ens_flts = ens$flts,
 #'
 #'   ens_times_train = ens$test_times[1:(test_start - 366)],
-#'   ens_times_dev = ens$test_times[(test_start - 365):(test_start - 1)],
 #'   ens_times_test = ens$test_times[test_start:test_end],
 #'
 #'   obs = ens$obs_aligned,
 #'
-#'   left_deltas = seq(-0.046, 0.12, by = 0.002),
-#'   right_deltas = seq(-0.02, 0.044, by = 0.002),
-#'   infinity_estimator = seq(0.1, 0.5, by = 0.1),
-#'   multiplier = seq(0.1, 1.1, by = 0.1))
+#'   deltas = seq(-0.02, 0.044, by = 0.002),
+#'   infinity_estimators = seq(0.1, 0.5, by = 0.1),
+#'   multipliers = seq(0.1, 1.1, by = 0.1))
 #'
 #' # If you are using doSNOW
 #' stopCluster(cl)
@@ -85,206 +83,217 @@
 #' @md
 #' @export
 EITrans <- function(ens, ens_times, ens_flts,
-                    ens_times_train, ens_times_dev, ens_times_test,
-                    obs, left_deltas, right_deltas,
-                    infinity_estimator,
-                    multiplier,
-                    circular_ens = F,
-                    member_weights = NULL,
-                    pre_sorted = F,
-                    save_intermediate = F) {
-
-  # Sanity checks
-  cat('Start EITrans calibration ...\n')
-  stopifnot(packageVersion('RAnEn') >= '4.0.8')
-  stopifnot(all(ens_times_test %in% ens_times))
-  stopifnot(length(intersect(ens_times_test, ens_times_dev)) == 0)
-  stopifnot(length(intersect(ens_times_test, ens_times_train)) == 0)
-
-  stopifnot(length(dim(obs)) == 3)
-  stopifnot(all.equal(dim(obs), dim(ens)[-4]))
-
-  if (inherits(infinity_estimator, 'list')) {
-    stopifnot(all(names(infinity_estimator) %in% c('left', 'right')))
-    left_infinity <- infinity_estimator$left
-    right_infinity <- infinity_estimator$right
-
-  } else {
-    stopifnot(all(infinity_estimator > 0))
-    left_infinity <- right_infinity <- infinity_estimator
-  }
-
-  stopifnot(all(multiplier > 0))
-
-  grid_search <- expand.grid(left_deltas = left_deltas,
-                             right_deltas = right_deltas,
-                             left_infinity = left_infinity,
-                             right_infinity = right_infinity,
-                             multiplier = multiplier)
-
-  rm(right_infinity, left_infinity)
-
-  lapply(1:nrow(grid_search), function(i) {
-    check_delta(grid_search$left_deltas[i],
-                grid_search$right_deltas[i],
-                dim(ens)[4])})
-
-  if (!getDoParRegistered()) warning(
-    'Register your workers (doMPI for multinode and doSNOW for multicores) for parallel processing!')
+                    ens_times_train, ens_times_test, obs,
+                    deltas, infinity_estimators, multipliers,
+                    circular_ens = F, member_weights = NULL,
+                    pre_sorted = F, save_intermediate = F) {
 
 
-  #################################################################################
-  #                             Training Stage                                    #
-  #################################################################################
+	#################
+	# Sanity checks #
+	#################
+
+	cat('Start EITrans calibration ...\n')
+	stopifnot(packageVersion('RAnEn') >= '4.0.8')
+
+	stopifnot(length(dim(ens)) == 4)
+	stopifnot(length(dim(obs)) == 3)
+	stopifnot(dim(ens)[2] == length(ens_times))
+	stopifnot(dim(ens)[3] == length(ens_flts))
+	stopifnot(all.equal(dim(obs), dim(ens)[-4]))
+
+	stopifnot(all(ens_times_test %in% ens_times))
+	stopifnot(all(ens_times_train %in% ens_times))
+	stopifnot(length(intersect(ens_times_test, ens_times_train)) == 0)
+
+	if (inherits(deltas, 'list')) {
+		stopifnot(all(names(deltas) %in% c('left', 'right')))
+		left_deltas <- deltas$left
+		right_deltas <- deltas$right
+
+	} else {
+		left_deltas <- right_deltas <- deltas
+	}
+
+	if (inherits(infinity_estimators, 'list')) {
+		stopifnot(all(names(infinity_estimators) %in% c('left', 'right')))
+		left_infinity <- infinity_estimators$left
+		right_infinity <- infinity_estimators$right
+
+	} else {
+		left_infinity <- right_infinity <- infinity_estimators
+	}
+
+	stopifnot(all(multipliers > 0))
+	stopifnot(all(left_infinity > 0))
+	stopifnot(all(right_infinity > 0))
+
+	grid_search <- expand.grid(left_deltas = left_deltas,
+														 right_deltas = right_deltas,
+														 left_infinity = left_infinity,
+														 right_infinity = right_infinity,
+														 multiplier = multipliers)
+
+	lapply(1:nrow(grid_search), function(i) {
+		check_delta(grid_search$left_deltas[i],
+								grid_search$right_deltas[i],
+								dim(ens)[4])})
+
+	rm(right_infinity, left_infinity, left_deltas, right_deltas,
+		 multipliers, deltas, infinity_estimators)
+
+	if (!getDoParRegistered()) warning(
+		'Create and register your workers with doSNOW for parallel processing!')
+
+	# Get dimensions of ensembles
+	num_stations <- dim(ens)[1]
+	num_times <- dim(ens)[2]
+	num_flts <- dim(ens)[3]
+	num_members <- dim(ens)[4]
+	num_test_times <- length(ens_times_test)
 
 
-  #
-  # 1. Identify similar ensemble forecasts for ens_times_dev using ens_times_train
-  #
+	#############################
+	# Generate ensemble analogs #
+	#############################
 
-  if (!pre_sorted) {
-    cat('Pre-sort ensemble forecast memebers ...\n')
-    ens <- aperm(apply(ens, 1:3, sort, na.last = T), c(2, 3, 4, 1))
-  }
+	# Pre-sort the ensembles to speed up computation
+	if (!pre_sorted) {
+		cat('Pre-sort ensemble forecast memebers ...\n')
+		ens <- aperm(apply(ens, 1:3, sort, na.last = T), c(2, 3, 4, 1))
+	}
 
-  cat('Identify similar ensemble forecasts for the dev period ...\n')
-  dev_AnEn <- univariate_ensemble_analogs(
-    ens = ens,
-    ens_times = ens_times,
-    ens_flts = ens_flts,
-    ens_times_train = ens_times_train,
-    ens_times_dev = ens_times_dev,
-    circular_ens = circular_ens,
-    member_weights = member_weights)
+	# Identify most similar historical ensembles for each of the test ensembles
+	cat('Identify analog ensemble index for the test period ...\n')
+	AnEn <- univariate_ensemble_analogs(
+		ens = ens,
+		ens_times = ens_times,
+		ens_flts = ens_flts,
+		ens_times_train = ens_times_train,
+		ens_times_dev = ens_times_test,
+		circular_ens = circular_ens,
+		member_weights = member_weights)
 
+	# Initialize arrays for the most similar historical ensembles
+	test_times_index <- ens_times %in% ens_times_test
+	ens_train <- array(NA, dim = c(num_stations, num_test_times, num_flts, num_members))
+	obs_train <- array(NA, dim = c(num_stations, num_test_times, num_flts))
 
-  #
-  # 2. Prepare variables for grid search
-  #
+	# Initilize a progress bar
+	pb <- progress_bar$new(format = "[:bar] :percent eta: :eta",
+												 total = num_stations * num_test_times, clear = F)
 
-  cat('Prepare for grid search ...\n')
+	# Convert test ensembles to the most similar historical ensembles
+	cat('Index analog values ...\n')
+	for (station_index in 1:num_stations) {
+		for (time_index in 1:num_test_times) {
+			for (flt_index in 1:num_flts) {
+				most_similar <- AnEn$similarity_time_index[station_index, time_index, flt_index, 1]
 
-  ens_dev <- ens[, (ens_times %in% ens_times_dev), , , drop = F]
-  obs_dev <- obs[, (ens_times %in% ens_times_dev), , drop = F]
+				ens_train[station_index, time_index, flt_index, ] <- ens[station_index, most_similar, flt_index, ]
+				obs_train[station_index, time_index, flt_index] <- obs[station_index, most_similar, flt_index]
+			}
 
-
-  #
-  # 3. Grid search for each forecast lead time
-  #
-
-  cat('Grid search with', nrow(grid_search), 'combinations for',
-      dim(ens)[3],  'forecast lead times ...\n')
-
-  best_combinations <- list()
-
-  for (flt_index in 1:dim(ens)[3]) {
-
-    cat('Process forecast lead time', flt_index, '/', dim(ens)[3], '...\n')
-
-    # Initialize a progress bar
-    pb <- progress_bar$new(
-      format = "[:bar] :percent eta: :eta",
-      total = nrow(grid_search), clear = F)
-
-    opts <- list(progress = function(n) pb$tick())
-
-    results <- foreach(index = 1:nrow(grid_search),
-                       .options.snow = opts) %dopar% {
-
-      # Initialization
-      ens_similar <- array(NA, dim = dim(ens_dev[, , flt_index, , drop = F]))
-      obs_similar <- array(NA, dim = dim(obs_dev[, , flt_index, drop = F]))
-
-      # Use the most similar ensembles
-      for (i in 1:dim(ens_similar)[1]) {
-        for (j in 1:dim(ens_similar)[2]) {
-          most_similar <- dev_AnEn$similarity_time_index[i, j, flt_index, 1]
-          ens_similar[i, j, 1, ] <- ens[i, most_similar, 1, ]
-          obs_similar[i, j, 1] <- obs[i, most_similar, 1]
-        }
-      }
-
-      # Calculate member offset
-      offset <- member_offset(
-        ensembles = ens_similar,
-        observations = obs_similar,
-        left_delta = grid_search$left_deltas[index],
-        right_delta = grid_search$right_deltas[index],
-        left_infinity_estimator = grid_search$left_infinity[index],
-        right_infinity_estimator = grid_search$right_infinity[index],
-        verbose = F, pre_sorted = T)
-
-      # Apply the scaling factor
-      offset <- offset * grid_search$multiplier[index]
-
-      # Calculate quality of this offset
-      ens_dev_calibrated <- aperm(
-        apply(ens_dev[, , flt_index, , drop = F], 1:3,
-              function(x) x + offset),
-        c(2, 3, 4, 1))
-
-      rh_dev_calibrated <- RAnEnExtra::verifyRankHist(
-        anen.ver = ens_dev_calibrated,
-        obs.ver = obs_dev[, , flt_index, drop = F],
-        show.progress = F, pre.sort = T)
-
-      list(offset = offset, rank = rh_dev_calibrated$rank)
-    }
-
-    if (any(sapply(results, inherits, what = 'try-error'))) {
-      warning('Grid search failed. Error messages are returned')
-      return(results)
-    }
-
-    # Idenfity best offset with the lowest sd
-    best_index <- which.min(sapply(results, function(x) {sd(x$rank)}))
-
-    # Store this best combination
-    best_combinations[[flt_index]] <- list(
-      offset = results[[best_index]]$offset,
-      index = best_index)
-
-    if (save_intermediate) {
-      best_combinations[[flt_index]]$original_rank <-
-        RAnEnExtra::verifyRankHist(
-          anen.ver = ens_dev[, , flt_index, , drop = F],
-          obs.ver = obs_dev[, , flt_index, drop = F],
-          show.progress = F, pre.sort = T)$rank
-
-      best_combinations[[flt_index]]$calibrated_rank <- results[[best_index]]$rank
-    }
-  }
+			pb$tick()
+		}
+	}
 
 
-  #################################################################################
-  #                             Testing Stage                                     #
-  #################################################################################
+	#########################
+	# Parameter grid search #
+	#########################
 
-  #
-  # 4. Prepare variables for testing
-  #
+	# Initialize a progress bar
+	num_options <- nrow(grid_search)
+	pb <- progress_bar$new(format = "[:bar] :percent eta: :eta", total = num_options, clear = F)
+	opts <- list(progress = function(n) pb$tick())
 
-  ens_test <- ens[, (ens_times %in% ens_times_test), , , drop = F]
+	# Grid search for the best parameter combination
+	cat('Grid search for best parameter combination out of', num_options, 'possibilities ...\n')
+	results <- foreach(index = 1:num_options, .options.snow = opts) %dopar% {
 
-  #
-  # 5. Calibrate test ensembles
-  #
+		# Calculate member offset
+		offset <- member_offset(
+			ensembles = ens_train,
+			observations = obs_train,
+			left_delta = grid_search$left_deltas[index],
+			right_delta = grid_search$right_deltas[index],
+			left_infinity_estimator = grid_search$left_infinity[index],
+			right_infinity_estimator = grid_search$right_infinity[index],
+			verbose = F, pre_sorted = T)
 
-  cat('Calibrating test ensembles ...\n')
+		# Apply the scaling factor
+		offset <- offset * grid_search$multiplier[index]
 
-  for (flt_index in 1:dim(ens)[3]) {
-    ens_test[, , flt_index, ] <- aperm(
-      apply(ens_test[, , flt_index, , drop = F], 1:3,
-            function(x) x + best_combinations[[flt_index]]$offset),
-      c(2, 3, 4, 1))
-  }
+		# Calculate quality of this offset
+		ens_train_calibrated <- apply(ens_train, 1:3, function(x) x + offset)
 
-  calibration_results <- list(
-    ens_test = ens_test,
-    best_combinations_by_flt = best_combinations,
-    grid_search = grid_search)
-  class(calibration_results) <- 'AnEn'
+		# Permutate array dimensions to be consistent with the original ensemble
+		ens_train_calibrated <- aperm(ens_train_calibrated, c(2, 3, 4, 1))
 
-  cat('EITrans Done!\n')
-  return(calibration_results)
+		# Calculate rank histogram of the calibrated ensembles
+		rh_dev_calibrated <- RAnEnExtra::verifyRankHist(
+			anen.ver = ens_train_calibrated, obs.ver = obs_train,
+			show.progress = F, pre.sort = T)
+
+		list(offset = offset, rank = rh_dev_calibrated$rank)
+	}
+
+	# Check for any errors
+	if (any(sapply(results, inherits, what = 'try-error'))) {
+		warning('Grid search failed. Error messages are retruned.')
+		return(results)
+	}
+
+	# Initialize a list for return
+	eitrans_results <- list()
+	class(eitrans_results) <- 'AnEn'
+
+	# Identify the best parameter combination index
+	best_index <- which.min(sapply(results, function(x) {sd(x$rank)}))
+
+	# Store this best combination
+	best_offset <- results[[best_index]]$offset
+
+	# Save results to the output list
+	eitrans_results$best_offset <- best_offset
+	eitrans_results$best_index <- best_index
+	eitrans_results$grid_search <- grid_search
+
+	if (save_intermediate) {
+		# Save the rank histogram of the original train ensembles
+		eitrans_results$train_rank_original <-
+			RAnEnExtra::verifyRankHist(
+				anen.ver = ens_train, obs.ver = obs_train,
+				show.progress = F, pre.sort = T)$rank
+
+		# Save the rank histograms of the calibrated train ensembles
+		eitrans_results$train_rank_calibrated <- results
+	}
+
+
+	################################################################
+	# Calibrate test ensembles with the best parameter combination #
+	################################################################
+
+	# Extract test ensembles
+	ens_test <- ens[, (ens_times %in% ens_times_test), , , drop = F]
+
+	# Calibrate test ensembles
+	cat('Calibrate test ensembles ...\n')
+
+	for (member_index in 1:num_members) {
+		ens_test[, , , member_index] <-
+			ens_test[, , , member_index, drop = F] + best_offset[member_index]
+	}
+
+	# Save results to the output list
+	eitrans_results$analogs_calibrated <- ens_test
+
+	if (save_intermediate) {
+		eitrans_results$analogs_most_similar <- ens_train
+	}
+
+	cat('EITrans Done!\n')
+	return(eitrans_results)
 }
