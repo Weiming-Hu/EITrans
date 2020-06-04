@@ -276,7 +276,7 @@ EITrans <- function(ens, ens_times, ens_flts,
 	    eitrans_results$train_rank_original <- sapply(1:num_flts, function(flt_index) {
 	      RAnEnExtra::verifyRankHist(
 	        anen.ver = ens_train[, , flt_index, , drop = F],
-	        obs.ver = obs_train[, , flt_index],
+	        obs.ver = obs_train[, , flt_index, drop = F],
 	        show.progress = F, pre.sort = T)$rank
 	    })
 
