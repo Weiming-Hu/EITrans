@@ -280,15 +280,11 @@ EITrans <- function(ens, ens_times, ens_flts,
 	ens_test <- ens[, (ens_times %in% ens_times_test), , , drop = F]
 
 	# Calibrate test ensembles
-	cat('Calibrate test ensembles ...\n')
-
-	for (member_index in 1:num_members) {
-		ens_test[, , , member_index] <-
-			ens_test[, , , member_index, drop = F] + best_offset[member_index]
-	}
-
-	# Save results to the output list
-	eitrans_results$analogs_calibrated <- ens_test
+	eitrans_results$analogs_calibrated <- apply_offset(
+	  ens = ens_test,
+	  offset = best_offset,
+	  pre_sorted = T,
+	  verbose = T)
 
 	if (save_intermediate) {
 		eitrans_results$analogs_most_similar <- ens_train
