@@ -44,7 +44,7 @@ apply_offset <- function(ens, offset, pre_sorted = F, verbose = F) {
   for (member_index in 1:num_members) {
     ens[, , , member_index] <-
       ens[, , , member_index, drop = F] +
-      best_offset[member_index]
+      offset[member_index]
   }
 
   return(ens)
