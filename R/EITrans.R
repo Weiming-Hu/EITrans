@@ -301,13 +301,14 @@ EITrans <- function(ens, ens_times, ens_flts,
 
 	# Calibrate test ensembles
 	if (optimize_lead_time) {
+	  cat('Calibrate ensembles by individual lead times ...\n')
 
 	  for (flt_index in 1:num_flts) {
 	    ens_test[, , flt_index, ] <- apply_offset(
 	      ens = ens_test[, , flt_index, , drop = F],
 	      offset = best_offset[, flt_index],
 	      pre_sorted = T,
-	      verbose = T)
+	      verbose = F)
 	  }
 
 	} else {
