@@ -64,7 +64,7 @@ optimize_parameters <- function(grid_search, ens_train, obs_train, verbose = F) 
 
     # Apply offset on the training dataset
     ens_train_calibrated <- apply_offset(
-      ens = ens_train, offset = best_offset,
+      ens = ens_train, offset = offset,
       pre_sorted = T, verbose = F)
 
     # Calculate rank histogram of the calibrated ensembles
