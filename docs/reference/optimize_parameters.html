@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>EITrans::check_delta — check_delta • EITrans</title>
+<title>EITrans::optimize_parameters — optimize_parameters • EITrans</title>
 
 
 <!-- jquery -->
@@ -35,8 +35,10 @@
 
 
 
-<meta property="og:title" content="EITrans::check_delta — check_delta" />
-<meta property="og:description" content="EITrans::check_delta checks whether the left/right deltas are valid EITrans arguments." />
+<meta property="og:title" content="EITrans::optimize_parameters — optimize_parameters" />
+<meta property="og:description" content="EITrans::optimize_parameters carries out a search for the optimized parameter
+combination for EITrans calibration with the input training ensembles forecasts
+and observations." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -105,33 +107,48 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>EITrans::check_delta</h1>
-    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/check_delta.R'><code>R/check_delta.R</code></a></small>
-    <div class="hidden name"><code>check_delta.Rd</code></div>
+    <h1>EITrans::optimize_parameters</h1>
+    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/optimize_parameters.R'><code>R/optimize_parameters.R</code></a></small>
+    <div class="hidden name"><code>optimize_parameters.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>EITrans::check_delta checks whether the left/right deltas are valid EITrans arguments.</p>
+    <p>EITrans::optimize_parameters carries out a search for the optimized parameter
+combination for EITrans calibration with the input training ensembles forecasts
+and observations.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>check_delta</span>(<span class='no'>left_delta</span>, <span class='no'>right_delta</span>, <span class='no'>num_members</span>)</pre>
+    <pre class="usage"><span class='fu'>optimize_parameters</span>(<span class='no'>grid_search</span>, <span class='no'>ens_train</span>, <span class='no'>obs_train</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>left_delta</th>
-      <td><p>A left-edge delta value to validate</p></td>
+      <th>grid_search</th>
+      <td><p>A data frame with columns <code>left_deltas</code>, <code>right_deltas</code>,
+<code>left_infinity</code>, <code>right_infinity</code>, and <code>multiplier</code>.</p></td>
     </tr>
     <tr>
-      <th>num_members</th>
-      <td><p>The number of ensemble members</p></td>
+      <th>ens_train</th>
+      <td><p>A 4-dimensional array as training ensemble forecasts.
+Dimensions should be <code>[stations, times, lead times, members]</code>.</p></td>
+    </tr>
+    <tr>
+      <th>obs_train</th>
+      <td><p>A 3-dimensional array for observations that correspond to the
+ensemble forecasts. Dimensions should be <code>[stations, times, lead times]</code>.</p></td>
+    </tr>
+    <tr>
+      <th>verbose</th>
+      <td><p>Whether to print progress information.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>NULL if validate; otherwise an error will be raised.</p>
+    <p>A list with member offsets calculated with each of the parameter combination
+and the rank histogram of the calibrated training forecast ensemble with the
+corresponding parameter combination.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

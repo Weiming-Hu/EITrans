@@ -70,7 +70,7 @@ inverse transform function method." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EITrans</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.2</span>
       </span>
     </div>
 
@@ -129,7 +129,8 @@ inverse transform function method.</p>
   <span class='kw'>circular_ens</span> <span class='kw'>=</span> <span class='no'>F</span>,
   <span class='kw'>member_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>pre_sorted</span> <span class='kw'>=</span> <span class='no'>F</span>,
-  <span class='kw'>save_intermediate</span> <span class='kw'>=</span> <span class='no'>F</span>
+  <span class='kw'>save_intermediate</span> <span class='kw'>=</span> <span class='no'>F</span>,
+  <span class='kw'>optimize_lead_time</span> <span class='kw'>=</span> <span class='no'>F</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -193,6 +194,13 @@ historical ensemble forecasts.</p></td>
     <tr>
       <th>save_intermediate</th>
       <td><p>Whether to save intermediate data.</p></td>
+    </tr>
+    <tr>
+      <th>optimize_lead_time</th>
+      <td><p>Whether to calibrate each forecast lead time
+respectively. Theoretically, this would lead to better calibration results,
+but also significantly more computation because calibration needs to be
+evaluated per lead time.</p></td>
     </tr>
     </table>
 

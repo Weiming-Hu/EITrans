@@ -19,7 +19,7 @@
 #' This function uses `foreach` parallel mechanism. Parallelization is handled
 #' by users creating the parallel backend. Please see examples. It is recommended
 #' to use `doSNOW` for handling the parallel backend.
-
+#'
 #' @author Weiming Hu <weiming@@psu.edu>
 #'
 #' @param ens A 4-dimensional array for ensemble forecasts. Dimensions should be
@@ -42,6 +42,10 @@
 #' historical ensemble forecasts.
 #' @param pre_sorted Whether the ensemble members are presorted.
 #' @param save_intermediate Whether to save intermediate data.
+#' @param optimize_lead_time Whether to calibrate each forecast lead time
+#' respectively. Theoretically, this would lead to better calibration results,
+#' but also significantly more computation because calibration needs to be
+#' evaluated per lead time.
 #'
 #' @return A list with the calibrated ensemble forecasts and intermediate results.
 #'
@@ -86,7 +90,8 @@ EITrans <- function(ens, ens_times, ens_flts,
                     ens_times_train, ens_times_test, obs,
                     deltas, infinity_estimators, multipliers,
                     circular_ens = F, member_weights = NULL,
-                    pre_sorted = F, save_intermediate = F) {
+                    pre_sorted = F, save_intermediate = F,
+                    optimize_lead_time = F) {
 
 
 	#################
@@ -203,69 +208,84 @@ EITrans <- function(ens, ens_times, ens_flts,
 	# Parameter grid search #
 	#########################
 
-	# Initialize a progress bar
-	num_options <- nrow(grid_search)
-	pb <- progress_bar$new(format = "[:bar] :percent eta: :eta", total = num_options, clear = F)
-	opts <- list(progress = function(n) pb$tick())
-
-	# Grid search for the best parameter combination
-	cat('Grid search for best parameter combination out of', num_options, 'possibilities ...\n')
-	results <- foreach(index = 1:num_options, .options.snow = opts) %dopar% {
-
-		# Calculate member offset
-		offset <- member_offset(
-			ensembles = ens_train,
-			observations = obs_train,
-			left_delta = grid_search$left_deltas[index],
-			right_delta = grid_search$right_deltas[index],
-			left_infinity_estimator = grid_search$left_infinity[index],
-			right_infinity_estimator = grid_search$right_infinity[index],
-			verbose = F, pre_sorted = T)
-
-		# Apply the scaling factor
-		offset <- offset * grid_search$multiplier[index]
-
-		# Calculate quality of this offset
-		ens_train_calibrated <- apply(ens_train, 1:3, function(x) x + offset)
-
-		# Permutate array dimensions to be consistent with the original ensemble
-		ens_train_calibrated <- aperm(ens_train_calibrated, c(2, 3, 4, 1))
-
-		# Calculate rank histogram of the calibrated ensembles
-		rh_dev_calibrated <- RAnEnExtra::verifyRankHist(
-			anen.ver = ens_train_calibrated, obs.ver = obs_train,
-			show.progress = F, pre.sort = T)
-
-		list(offset = offset, rank = rh_dev_calibrated$rank)
-	}
-
-	# Check for any errors
-	if (any(sapply(results, inherits, what = 'try-error'))) {
-		warning('Grid search failed. Error messages are retruned.')
-		return(results)
-	}
-
 	# Initialize a list for return
-	eitrans_results <- list()
+	eitrans_results <- list(optimize_lead_time = optimize_lead_time)
 	class(eitrans_results) <- 'AnEn'
 
-	# Identify the best parameter combination index
-	best_index <- which.min(sapply(results, function(x) {sd(x$rank)}))
+	if (optimize_lead_time) {
 
-	# Store this best combination
-	best_offset <- results[[best_index]]$offset
+	  #
+	  # If lead time optimization is enabled, we need to apply the search across
+	  # each lead time and come up with an individual set of offset values for members
+	  # at each lead time. This would lead to significantly more computation but
+	  # theoretically better calibration performance.
+	  #
+
+	  results <- list()
+
+	  for (flt_index in 1:num_flts) {
+	    cat('Grid search for lead time', flt_index, '/', num_flts, '...\n')
+
+	    results[[flt_index]] <- optimize_parameters(
+	      grid_search = grid_search,
+	      ens_train = ens_train[, , flt_index, , drop = F],
+	      obs_train = obs_train[, , flt_index, drop = F],
+	      verbose = T)
+	  }
+
+	} else {
+
+	  #
+	  # If lead time optimization is not enabled, we could simply apply the search
+	  # across all lead times and come up with a single set of offset values for
+	  # members at all lead times.
+	  #
+
+	  results <- optimize_parameters(
+	    grid_search = grid_search,
+	    ens_train = ens_train,
+	    obs_train = obs_train,
+	    verbose = T)
+	}
+
+	# Define the metric for selecting the best offset values
+	metric <- function(result) sd(result$rank)
+
+	# Identify the best parameter combination based on the lowest standard
+	# deviation of the rank histogram of the calibrated ensemble.
+	#
+	if (optimize_lead_time) {
+	  best_index <- sapply(results, function(x) which.min(sapply(x, metric)))
+	  best_offset <- sapply(1:length(best_index),
+	                        function(index) results[[index]][[best_index[index]]]$offset)
+	} else {
+	  best_index <- which.min(sapply(results, metric))
+	  best_offset <- results[[best_index]]$offset
+	}
 
 	# Save results to the output list
 	eitrans_results$best_offset <- best_offset
 	eitrans_results$best_index <- best_index
 	eitrans_results$grid_search <- grid_search
 
+	# Save the rank histogram of the original train ensembles
 	if (save_intermediate) {
-		# Save the rank histogram of the original train ensembles
-		eitrans_results$train_rank_original <-
-			RAnEnExtra::verifyRankHist(
-				anen.ver = ens_train, obs.ver = obs_train,
-				show.progress = F, pre.sort = T)$rank
+	  cat('Calculate the rank histogram of the training ensembles ...\n')
+
+	  if (optimize_lead_time) {
+	    eitrans_results$train_rank_original <- sapply(1:num_flts, function(flt_index) {
+	      RAnEnExtra::verifyRankHist(
+	        anen.ver = ens_train[, , flt_index, , drop = F],
+	        obs.ver = obs_train[, , flt_index],
+	        show.progress = F, pre.sort = T)$rank
+	    })
+
+	  } else {
+	    eitrans_results$train_rank_original <-
+	      RAnEnExtra::verifyRankHist(
+	        anen.ver = ens_train, obs.ver = obs_train,
+	        show.progress = F, pre.sort = T)$rank
+	  }
 
 		# Save the rank histograms of the calibrated train ensembles
 		eitrans_results$train_rank_calibrated <- results
@@ -280,11 +300,25 @@ EITrans <- function(ens, ens_times, ens_flts,
 	ens_test <- ens[, (ens_times %in% ens_times_test), , , drop = F]
 
 	# Calibrate test ensembles
-	eitrans_results$analogs_calibrated <- apply_offset(
-	  ens = ens_test,
-	  offset = best_offset,
-	  pre_sorted = T,
-	  verbose = T)
+	if (optimize_lead_time) {
+
+	  for (flt_index in 1:num_flts) {
+	    ens_test[, , flt_index, ] <- apply_offset(
+	      ens = ens_test[, , flt_index, , drop = F],
+	      offset = best_offset[, flt_index],
+	      pre_sorted = T,
+	      verbose = T)
+	  }
+
+	} else {
+	  ens_test <- apply_offset(
+	    ens = ens_test,
+	    offset = best_offset,
+	    pre_sorted = T,
+	    verbose = T)
+	}
+
+	eitrans_results$analogs_calibrated <- ens_test
 
 	if (save_intermediate) {
 		eitrans_results$analogs_most_similar <- ens_train

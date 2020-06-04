@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>EITrans::check_delta — check_delta • EITrans</title>
+<title>EITrans::apply_offset — apply_offset • EITrans</title>
 
 
 <!-- jquery -->
@@ -35,8 +35,10 @@
 
 
 
-<meta property="og:title" content="EITrans::check_delta — check_delta" />
-<meta property="og:description" content="EITrans::check_delta checks whether the left/right deltas are valid EITrans arguments." />
+<meta property="og:title" content="EITrans::apply_offset — apply_offset" />
+<meta property="og:description" content="EITrans::apply_offset adds the offset values to a forecast ensemble. Offset values
+are calculated from EITrans::member_offset. Or you could simply use EITrans::EITrans
+which has built in a complete workflow for EITrans calibration." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -105,33 +107,45 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>EITrans::check_delta</h1>
-    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/check_delta.R'><code>R/check_delta.R</code></a></small>
-    <div class="hidden name"><code>check_delta.Rd</code></div>
+    <h1>EITrans::apply_offset</h1>
+    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/apply_offset.R'><code>R/apply_offset.R</code></a></small>
+    <div class="hidden name"><code>apply_offset.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>EITrans::check_delta checks whether the left/right deltas are valid EITrans arguments.</p>
+    <p>EITrans::apply_offset adds the offset values to a forecast ensemble. Offset values
+are calculated from EITrans::member_offset. Or you could simply use EITrans::EITrans
+which has built in a complete workflow for EITrans calibration.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>check_delta</span>(<span class='no'>left_delta</span>, <span class='no'>right_delta</span>, <span class='no'>num_members</span>)</pre>
+    <pre class="usage"><span class='fu'>apply_offset</span>(<span class='no'>ens</span>, <span class='no'>offset</span>, <span class='kw'>pre_sorted</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>left_delta</th>
-      <td><p>A left-edge delta value to validate</p></td>
+      <th>ens</th>
+      <td><p>A 4-dimensional array for ensemble forecasts. Dimensions should be
+<code>[stations, times, lead times, members]</code>.</p></td>
     </tr>
     <tr>
-      <th>num_members</th>
-      <td><p>The number of ensemble members</p></td>
+      <th>offset</th>
+      <td><p>Member offset values used to calibrate ensembles.</p></td>
+    </tr>
+    <tr>
+      <th>pre_sorted</th>
+      <td><p>Whether the ensemble members are pre-sorted from the lowest to
+the highest. Using pre-sorted ensembles can save runtime.</p></td>
+    </tr>
+    <tr>
+      <th>verbose</th>
+      <td><p>Whether to print messages.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>NULL if validate; otherwise an error will be raised.</p>
+    <p>A calibrated ensemble</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -141,8 +155,6 @@
       <li><a href="#value">Value</a></li>
     </ul>
 
-    <h2>Author</h2>
-    <p>Weiming Hu <a href='mailto:weiming@psu.edu'>weiming@psu.edu</a></p>
   </div>
 </div>
 

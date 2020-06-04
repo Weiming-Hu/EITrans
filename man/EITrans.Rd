@@ -17,7 +17,8 @@ EITrans(
   circular_ens = F,
   member_weights = NULL,
   pre_sorted = F,
-  save_intermediate = F
+  save_intermediate = F,
+  optimize_lead_time = F
 )
 }
 \arguments{
@@ -53,6 +54,11 @@ historical ensemble forecasts.}
 \item{pre_sorted}{Whether the ensemble members are presorted.}
 
 \item{save_intermediate}{Whether to save intermediate data.}
+
+\item{optimize_lead_time}{Whether to calibrate each forecast lead time
+respectively. Theoretically, this would lead to better calibration results,
+but also significantly more computation because calibration needs to be
+evaluated per lead time.}
 }
 \value{
 A list with the calibrated ensemble forecasts and intermediate results.
