@@ -37,7 +37,8 @@
 univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
                                         ens_times_train, ens_times_dev,
                                         circular_ens = F,
-                                        member_weights = NULL) {
+                                        member_weights = NULL,
+                                        verbose = 1) {
 
   # Sanity checks
   stopifnot(length(dim(ens)) == 4)
@@ -49,64 +50,37 @@ univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
   if (!is.null(member_weights)) stopifnot(
     is.numeric(member_weights) & length(member_weights) == dim(ens)[4])
 
-  if (foreach::getDoParRegistered()) use_single_thread <- T
-  else use_single_thread <- F
+  # Convert ensembles to RAnEn::Forecasts
+  fcsts <- RAnEn::generateForecastsTemplate()
+  fcsts$Data <- aperm(ens, c(4, 1, 2, 3))
+  fcsts$ParameterNames <- paste('member', 1:dim(fcsts$Data)[1], sep = '_')
+  if (circular_ens) fcsts$ParameterCirculars <- fcsts$ParameterNames
+  fcsts$Times <- ens_times
+  fcsts$FLTs <- ens_flts
 
-  # Initialize a progress bar
-  pb <- progress_bar$new(
-    format = "[:bar] :percent eta: :eta",
-    total = dim(ens)[1], clear = F)
+  # Generate observation placeholder
+  placeholder_obs <- RAnEn::generateObservationsTemplate()
+  placeholder_obs$ParameterNames <- 'Placeholder'
+  placeholder_obs$Times <- unique(rep(ens_times, each = length(ens_flts)) +
+                                    as.numeric(ens_flts))
+  placeholder_obs$Data <- array(1, dim = c(1, dim(fcsts$Data)[2],
+                                           length(placeholder_obs$Times)))
 
-  opts <- list(progress = function(n) pb$tick())
+  # Set up config
+  config <- new(RAnEn::Config)
+  config$num_similarity <- 1
+  config$quick <- F
+  config$operation <- F
+  config$save_analogs <- F
+  config$save_analogs_time_index <- F
+  config$save_similarity <- F
+  config$save_similarity_time_index <- T
+  if (!is.null(member_weights)) config$weights <- member_weights
+  config$verbose <- verbose
 
-  # Generate analogs for each station separately
-  results <- foreach(station_index = 1:dim(ens)[1],
-                     .options.snow = opts) %dopar% {
+  # Find similar ensemble forecasts from the training period
+  AnEn <- RAnEn::generateAnalogs(fcsts, placeholder_obs,
+                                 ens_times_dev, ens_times_train, config)
 
-    # Take care of threads
-    num_threads <- RAnEn::getNumThreads()
-    if (use_single_thread) RAnEn::setNumThreads(1)
-
-    # Convert ensembles to RAnEn::Forecasts
-    fcsts <- RAnEn::generateForecastsTemplate()
-    fcsts$Data <- aperm(ens[station_index, , , , drop = F], c(4, 1, 2, 3))
-    fcsts$ParameterNames <- paste('member', 1:dim(fcsts$Data)[1], sep = '_')
-    if (circular_ens) fcsts$ParameterCirculars <- fcsts$ParameterNames
-    fcsts$Times <- ens_times
-    fcsts$FLTs <- ens_flts
-
-    # Generate observation placeholder
-    placeholder_obs <- RAnEn::generateObservationsTemplate()
-    placeholder_obs$ParameterNames <- 'Placeholder'
-    placeholder_obs$Times <- unique(rep(ens_times, each = length(ens_flts)) +
-                                      as.numeric(ens_flts))
-    placeholder_obs$Data <- array(1, dim = c(1, dim(fcsts$Data)[2],
-                                             length(placeholder_obs$Times)))
-
-    # Set up config
-    config <- new(RAnEn::Config)
-    config$num_similarity <- 1
-    config$quick <- F
-    config$operation <- F
-    config$save_analogs <- F
-    config$save_analogs_time_index <- F
-    config$save_similarity <- F
-    config$save_similarity_time_index <- T
-    if (!is.null(member_weights)) config$weights <- member_weights
-    config$verbose <- 1
-
-    # Find similar ensemble forecasts from the training period
-    AnEn <- RAnEn::generateAnalogs(fcsts, placeholder_obs,
-                                   ens_times_dev, ens_times_train, config)
-
-    # Revert thread control
-    RAnEn::setNumThreads(num_threads)
-
-    return(AnEn$similarity_time_index)
-  }
-
-  ret <- list(similarity_time_index = abind::abind(results, along = 1))
-  class(ret) <- 'AnEn'
-
-  return(ret)
+  return(AnEn)
 }
