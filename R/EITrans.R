@@ -179,29 +179,11 @@ EITrans <- function(ens, ens_times, ens_flts,
 		circular_ens = circular_ens,
 		member_weights = member_weights)
 
-	# Initialize arrays for the most similar historical ensembles
-	test_times_index <- ens_times %in% ens_times_test
-	ens_train <- array(NA, dim = c(num_stations, num_test_times, num_flts, num_members))
-	obs_train <- array(NA, dim = c(num_stations, num_test_times, num_flts))
 
-	# Initilize a progress bar
-	pb <- progress_bar$new(format = "[:bar] :percent eta: :eta",
-												 total = num_stations * num_test_times, clear = F)
-
-	# Convert test ensembles to the most similar historical ensembles
-	cat('Index analog values ...\n')
-	for (station_index in 1:num_stations) {
-		for (time_index in 1:num_test_times) {
-			for (flt_index in 1:num_flts) {
-				most_similar <- AnEn$similarity_time_index[station_index, time_index, flt_index, 1]
-
-				ens_train[station_index, time_index, flt_index, ] <- ens[station_index, most_similar, flt_index, ]
-				obs_train[station_index, time_index, flt_index] <- obs[station_index, most_similar, flt_index]
-			}
-
-			pb$tick()
-		}
-	}
+	# Convert indices to values
+	l <- index_to_value(AnEn$similarity_time_index, ens, obs)
+	ens_train <- l$ens
+	obs_train <- l$obs
 
 
 	#########################

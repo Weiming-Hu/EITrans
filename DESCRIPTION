@@ -1,7 +1,7 @@
 Package: EITrans
 Type: Package
 Title: Empirical Inverse Transform Function for Ensemble Calibration
-Version: 0.5.3
+Version: 0.5.4
 Author: Weiming Hu
 Maintainer: Weiming Hu <weiming@psu.edu>
 Description: This package proposes an algorithm for ensemble forecast calibration.
