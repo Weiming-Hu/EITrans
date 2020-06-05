@@ -20,7 +20,7 @@
 #'
 #' @md
 #' @export
-index_to_value <- function(similarity_time_index, ens, obs, verbose = F) {
+index_to_value <- function(similarity_time_index, ens, obs = NULL, verbose = F) {
 
   stopifnot(length(dim(ens)) == 4)
   stopifnot(length(dim(obs)) == 3)
@@ -49,8 +49,11 @@ index_to_value <- function(similarity_time_index, ens, obs, verbose = F) {
 
         ens_similar[station_index, time_index, flt_index, ] <-
           ens[station_index, most_similar, flt_index, ]
-        obs_similar[station_index, time_index, flt_index] <-
-          obs[station_index, most_similar, flt_index]
+
+        if (!is.null(obs)) {
+          obs_similar[station_index, time_index, flt_index] <-
+            obs[station_index, most_similar, flt_index]
+        }
       }
 
       if (verbose) pb$tick()

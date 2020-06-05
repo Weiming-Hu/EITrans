@@ -11,7 +11,8 @@ univariate_ensemble_analogs(
   ens_times_train,
   ens_times_dev,
   circular_ens = F,
-  member_weights = NULL
+  member_weights = NULL,
+  verbose = 1
 )
 }
 \arguments{

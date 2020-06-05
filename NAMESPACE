@@ -3,6 +3,7 @@
 export(EITrans)
 export(apply_offset)
 export(check_delta)
+export(index_to_value)
 export(member_offset)
 export(optimize_parameters)
 export(univariate_ensemble_analogs)
