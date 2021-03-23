@@ -25,8 +25,6 @@
 #' @param ens_times_train Training times from the ensemble forecast times.
 #' @param ens_times_dev Development times from the ensemble forecast times.
 #' @param circular_ens Whether the ensemble forecast variable is circular.
-#' @param member_weights Weights for each ensemble members when finding similar
-#' historical ensemble forecasts.
 #'
 #' @import RAnEn
 #' @import foreach
@@ -37,8 +35,7 @@
 univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
                                         ens_times_train, ens_times_dev,
                                         circular_ens = F,
-                                        member_weights = NULL,
-                                        verbose = 1) {
+                                        config = NULL) {
 
   # Sanity checks
   stopifnot(length(dim(ens)) == 4)
@@ -47,8 +44,6 @@ univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
   stopifnot(dim(ens)[3] == length(ens_flts))
   stopifnot(all(ens_times_train %in% ens_times))
   stopifnot(all(ens_times_dev %in% ens_times))
-  if (!is.null(member_weights)) stopifnot(
-    is.numeric(member_weights) & length(member_weights) == dim(ens)[4])
 
   # Convert ensembles to RAnEn::Forecasts
   fcsts <- RAnEn::generateForecastsTemplate()
@@ -67,16 +62,21 @@ univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
                                            length(placeholder_obs$Times)))
 
   # Set up config
+  if (is.null(config)) {
   config <- new(RAnEn::Config)
   config$num_similarity <- 1
-  config$quick <- F
   config$operation <- F
+  config$save_similarity <- F
+
+  } else {
+    stopifnot(inherits(config, 'Rcpp_Config'))
+  }
+
+  config$quick <- F
+  config$num_analogs <- 1
   config$save_analogs <- F
   config$save_analogs_time_index <- F
-  config$save_similarity <- F
   config$save_similarity_time_index <- T
-  if (!is.null(member_weights)) config$weights <- member_weights
-  config$verbose <- verbose
 
   # Find similar ensemble forecasts from the training period
   AnEn <- RAnEn::generateAnalogs(fcsts, placeholder_obs,

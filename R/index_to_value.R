@@ -37,8 +37,8 @@ index_to_value <- function(similarity_time_index, ens, obs = NULL, verbose = F) 
   obs_similar <- array(NA, dim = c(num_stations, num_test_times, num_flts))
 
   # Initilize a progress bar
-  pb <- progress_bar$new(format = "[:bar] :percent eta: :eta",
-                         total = num_stations * num_test_times, clear = F)
+  pb <- progress::progress_bar$new(format = "[:bar] :percent eta: :eta",
+                                   total = num_stations * num_test_times, clear = F)
 
   # Convert test ensembles to the most similar historical ensembles
   if (verbose) cat('Index analog values ...\n')
