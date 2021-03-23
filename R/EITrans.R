@@ -38,8 +38,6 @@
 #' @param multipliers A vector of values to experiment for adjusting the
 #' ensemble member offset.
 #' @param circular_ens Whether the ensemble forecast variable is circular.
-#' @param member_weights Weights for each ensemble members when finding similar
-#' historical ensemble forecasts.
 #' @param pre_sorted Whether the ensemble members are presorted.
 #' @param save_intermediate Whether to save intermediate data.
 #' @param optimize_lead_time Whether to calibrate each forecast lead time
@@ -89,7 +87,7 @@
 EITrans <- function(ens, ens_times, ens_flts,
                     ens_times_train, ens_times_test, obs,
                     deltas, infinity_estimators, multipliers,
-                    circular_ens = F, member_weights = NULL,
+                    circular_ens = F,
                     pre_sorted = F, save_intermediate = F,
                     optimize_lead_time = F) {
 
@@ -176,8 +174,7 @@ EITrans <- function(ens, ens_times, ens_flts,
 		ens_flts = ens_flts,
 		ens_times_train = ens_times_train,
 		ens_times_dev = ens_times_test,
-		circular_ens = circular_ens,
-		member_weights = member_weights)
+		circular_ens = circular_ens)
 
 
 	# Convert indices to values
