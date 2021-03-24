@@ -11,8 +11,7 @@ univariate_ensemble_analogs(
   ens_times_train,
   ens_times_dev,
   circular_ens = F,
-  member_weights = NULL,
-  verbose = 1
+  config = NULL
 )
 }
 \arguments{
@@ -28,9 +27,6 @@ univariate_ensemble_analogs(
 \item{ens_times_dev}{Development times from the ensemble forecast times.}
 
 \item{circular_ens}{Whether the ensemble forecast variable is circular.}
-
-\item{member_weights}{Weights for each ensemble members when finding similar
-historical ensemble forecasts.}
 }
 \description{
 EITrans::univariate_ensemble_analogs generates analogs using univariate ensemble

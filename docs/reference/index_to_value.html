@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>EITrans::EITrans — member_offset • EITrans</title>
+<title>EITrans::index_to_value — index_to_value • EITrans</title>
 
 
 <!-- jquery -->
@@ -35,9 +35,8 @@
 
 
 
-<meta property="og:title" content="EITrans::EITrans — member_offset" />
-<meta property="og:description" content="EITrans::member_offset calculates an value offset for each member of the input
-ensembles so that the resulting rank histogram shall be flat." />
+<meta property="og:title" content="EITrans::index_to_value — index_to_value" />
+<meta property="og:description" content="EITrans::index_to_value" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -106,88 +105,23 @@ ensembles so that the resulting rank histogram shall be flat." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>EITrans::EITrans</h1>
-    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/member_offset.R'><code>R/member_offset.R</code></a></small>
-    <div class="hidden name"><code>member_offset.Rd</code></div>
+    <h1>EITrans::index_to_value</h1>
+    <small class="dont-index">Source: <a href='https://github.com/Weiming-Hu/EITrans/blob/master/R/index_to_value.R'><code>R/index_to_value.R</code></a></small>
+    <div class="hidden name"><code>index_to_value.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>EITrans::member_offset calculates an value offset for each member of the input
-ensembles so that the resulting rank histogram shall be flat.</p>
+    <p>EITrans::index_to_value</p>
     </div>
 
-    <pre class="usage"><span class='fu'>member_offset</span>(
-  <span class='no'>ensembles</span>,
-  <span class='no'>observations</span>,
-  <span class='no'>left_delta</span>,
-  <span class='no'>right_delta</span>,
-  <span class='kw'>left_infinity_estimator</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>right_infinity_estimator</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>pre_sorted</span> <span class='kw'>=</span> <span class='no'>F</span>
-)</pre>
+    <pre class="usage"><span class='fu'>index_to_value</span>(<span class='no'>similarity_time_index</span>, <span class='no'>ens</span>, <span class='kw'>obs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>ensembles</th>
-      <td><p>A 4-dimensional array with the dimensions
-<code>[stations, times, forecast lead times, ensemble members]</code></p></td>
-    </tr>
-    <tr>
-      <th>observations</th>
-      <td><p>A 3-dimensional array with the dimensions
-<code>[stations, times, forecast lead times]</code></p></td>
-    </tr>
-    <tr>
-      <th>left_delta</th>
-      <td><p>A scalar addition offset for the minimum during sampling</p></td>
-    </tr>
-    <tr>
-      <th>right_delta</th>
-      <td><p>A scalar addition offset for the maximum during sampling</p></td>
-    </tr>
-    <tr>
-      <th>left_infinity_estimator</th>
-      <td><p>A scalar to scaling the minimum of the ensemble</p></td>
-    </tr>
-    <tr>
-      <th>right_infinity_estimator</th>
-      <td><p>A scalar to scaling the maximum of the ensemble</p></td>
-    </tr>
-    <tr>
-      <th>verbose</th>
-      <td><p>Whether to be verbose</p></td>
-    </tr>
-    <tr>
-      <th>pre_sorted</th>
-      <td><p>Whether the input ensemble members are pre-sorted. Use pre-sorted
-ensembles will save you about 80% of the execution time. To pre-sort your ensembles,
-use <code><a href='https://rdrr.io/r/base/aperm.html'>aperm(apply(ensembles, 1:3, sort, na.last = T), c(2, 3, 4, 1))</a></code>.</p></td>
-    </tr>
-    </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>A vector for ensemble member offset. <strong>Make sure that you have sorted
-your ensemble values before you add the offset to each member</strong>.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>Input ensembles and observations should match up for the first three dimensions
-which should be #stations, #times, and #lead times. The 4th dimension of ensembles
-should be ensemble members.</p>
-<p>The length of the output of the function will be a vector of the length of the
-ensemble members. When you actually use these offset values to correct new ensembles,
-<strong>make sure that you SORT your ensemble members from smallest to largest</strong>.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
     </ul>
 
     <h2>Author</h2>

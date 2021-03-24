@@ -15,7 +15,6 @@ EITrans(
   infinity_estimators,
   multipliers,
   circular_ens = F,
-  member_weights = NULL,
   pre_sorted = F,
   save_intermediate = F,
   optimize_lead_time = F
@@ -47,9 +46,6 @@ different left/right infinity estimators.}
 ensemble member offset.}
 
 \item{circular_ens}{Whether the ensemble forecast variable is circular.}
-
-\item{member_weights}{Weights for each ensemble members when finding similar
-historical ensemble forecasts.}
 
 \item{pre_sorted}{Whether the ensemble members are presorted.}
 
