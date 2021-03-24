@@ -79,8 +79,7 @@ univariate_ensemble_analogs <- function(ens, ens_times, ens_flts,
   config$save_similarity_time_index <- T
 
   # Find similar ensemble forecasts from the training period
-  AnEn <- RAnEn::generateAnalogs(fcsts, placeholder_obs,
-                                 ens_times_dev, ens_times_train, config)
+  AnEn <- RAnEn::generateAnalogs.Forecasts(fcsts, placeholder_obs, ens_times_dev, ens_times_train, config)
 
   return(AnEn)
 }
