@@ -1,7 +1,0 @@
-# This is a note for developers.
-
-# To include functions to NAMESPACE
-devtools::document()
-
-# To build the website and docs
-pkgdown::build_site()
